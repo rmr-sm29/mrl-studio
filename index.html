@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>mrl. studio — Anuncios de alta producción con IA en 7 días</title>
+    <meta name="description" content="Vídeo cinematográfico, UGC y estáticos generados con IA. Sin rodajes, sin castings, sin esperas de semanas." />
+    <link rel="canonical" href="%SITE_URL%/" />
+    <meta name="theme-color" content="#0C0D0C" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="es_ES" />
+    <meta property="og:site_name" content="mrl. studio" />
+    <meta property="og:url" content="%SITE_URL%/" />
+    <meta property="og:title" content="mrl. studio — Anuncios de alta producción con IA en 7 días" />
+    <meta property="og:description" content="Vídeo cinematográfico, UGC y estáticos generados con IA. Sin rodajes, sin castings, sin esperas de semanas." />
+    <meta property="og:image" content="%SITE_URL%/media/og.jpg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="mrl. studio" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="mrl. studio — Anuncios de alta producción con IA en 7 días" />
+    <meta name="twitter:description" content="Vídeo cinematográfico, UGC y estáticos generados con IA. Sin rodajes, sin castings, sin esperas de semanas." />
+    <meta name="twitter:image" content="%SITE_URL%/media/og.jpg" />
+
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+
+    <!-- LCP: la imagen del hero se precarga con prioridad alta, un recorte por breakpoint -->
+    <link rel="preload" as="image" type="image/avif" fetchpriority="high" media="(max-width: 767px), (max-width: 1024px) and (orientation: portrait)"
+      imagesrcset="/media/hero-4x5-640.avif 640w, /media/hero-4x5-1080.avif 1080w" imagesizes="100vw" />
+    <link rel="preload" as="image" type="image/avif" fetchpriority="high" media="(min-width: 1025px), (min-width: 768px) and (orientation: landscape)"
+      imagesrcset="/media/hero-16x9-1280.avif 1280w, /media/hero-16x9-1920.avif 1920w, /media/hero-16x9-2752.avif 2752w" imagesizes="100vw" />
+
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "Organization",
+            "@id": "%SITE_URL%/#organization",
+            "name": "mrl. studio",
+            "url": "%SITE_URL%/",
+            "logo": "%SITE_URL%/apple-touch-icon.png",
+            "sameAs": ["https://www.instagram.com/arnaumrl.ai/"]
+          },
+          {
+            "@type": "Service",
+            "name": "Producción de contenido publicitario generado con IA",
+            "serviceType": "Producción publicitaria con IA generativa",
+            "description": "Vídeo cinematográfico, UGC e imagen de producto generados con IA, entregados en 7 días con la metodología VOLT.",
+            "provider": { "@id": "%SITE_URL%/#organization" },
+            "areaServed": { "@type": "Country", "name": "España" },
+            "availableLanguage": "es",
+            "hasOfferCatalog": {
+              "@type": "OfferCatalog",
+              "name": "Formatos",
+              "itemListElement": [
+                { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Spot cinematográfico" } },
+                { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "UGC" } },
+                { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Imagen de producto" } }
+              ]
+            }
+          }
+        ]
+      }
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

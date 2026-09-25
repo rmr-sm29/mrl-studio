@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <rect width="64" height="64" rx="12" fill="#0C0D0C"/>
+  <text x="7" y="43" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-weight="700" font-size="30" letter-spacing="-1.5" fill="#F4F1EA">mrl</text>
+  <rect x="51" y="36" width="7" height="7" fill="#E8A24A"/>
+</svg>

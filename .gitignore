@@ -1,0 +1,8 @@
+node_modules
+dist
+.vercel
+.env*
+!.env.example
+assets-src/*
+!assets-src/README.md
+.DS_Store
