@@ -9,9 +9,13 @@ export function Closing() {
   const clockRef = useRef<HTMLDivElement>(null);
   const reduced = useReducedMotion();
 
-  // Agujas ligadas al scroll de la sección: 10:10 → 10:25, quince minutos exactos (lo que dura la llamada).
+  // Agujas ligadas al progreso de scroll de la sección (no a un temporizador): 10:10 → 10:25, los quince minutos
+  // de la llamada. Bajar las avanza en sentido horario y subir las retrocede.
   const onProgress = useCallback((p: number) => {
-    clockRef.current?.style.setProperty('--t', p.toFixed(4));
+    const el = clockRef.current;
+    if (!el) return;
+    el.style.setProperty('--h', `${(305 + 7.5 * p).toFixed(3)}deg`);
+    el.style.setProperty('--m', `${(60 + 90 * p).toFixed(3)}deg`);
   }, []);
   useSectionProgress(ref, !reduced, onProgress);
 

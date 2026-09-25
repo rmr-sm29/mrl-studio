@@ -6,8 +6,7 @@
 //   npm run assets -- videos  → solo vídeos
 //
 // Ajustes por variables de entorno:
-//   UGC2_START     segundo de inicio del recorte de 0910.mov (por defecto 0)
-//   UGC2_DURATION  duración del recorte (por defecto 12 s; el brief pide 10-12 s)
+//   UGC2_START / UGC2_DURATION  recorte opcional del UGC 2. Sin definir no se recorta: el clip v3 ya viene a 11,4 s.
 
 import { execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
@@ -21,6 +20,7 @@ mkdirSync(TMP, { recursive: true });
 
 const only = process.argv[2];
 const kb = (f) => `${Math.round(statSync(f).size / 1024)} KB`;
+const firstOf = (...names) => names.map((n) => `${SRC}/${n}`).find(existsSync);
 const has = (f) => existsSync(f) || (console.warn(`  falta ${f}, se omite`), false);
 
 function ff(args) {
@@ -53,17 +53,20 @@ const faviconSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
 `;
 
 async function images() {
+  // Versión reescalada (v3): hero-desktop.png 4046×2258 y hero-mobile.png 2258×4046. Se acepta también .jpeg.
+  const heroD = firstOf('hero-desktop.png', 'hero-desktop.jpeg');
+  const heroM = firstOf('hero-mobile.png', 'hero-mobile.jpeg');
   console.log('Hero escritorio 16:9');
-  if (has(`${SRC}/hero-desktop.jpeg`)) await variants(`${SRC}/hero-desktop.jpeg`, 'hero-desktop', [1280, 1920, 2752]);
+  if (heroD) await variants(heroD, 'hero-desktop', [1280, 1920, 2752]);
   console.log('Hero móvil 9:16');
-  if (has(`${SRC}/hero-mobile.jpeg`)) await variants(`${SRC}/hero-mobile.jpeg`, 'hero-mobile', [720, 1080, 1536]);
+  if (heroM) await variants(heroM, 'hero-mobile', [720, 1080, 1536]);
 
   console.log('og:image 1200×630');
-  if (existsSync(`${SRC}/hero-desktop.jpeg`)) {
+  if (heroD) {
     // Se amplía a 760 px de alto para poder desplazar el encuadre hacia la figura (≈ 68 % del ancho).
     const scaledW = Math.round((2752 / 1536) * 760);
     const left = Math.min(Math.max(Math.round(scaledW * 0.68 - 600), 0), scaledW - 1200);
-    await sharp(`${SRC}/hero-desktop.jpeg`)
+    await sharp(heroD)
       .resize({ height: 760 })
       .extract({ left, top: 40, width: 1200, height: 630 })
       .composite([{ input: ogOverlay }])
@@ -82,7 +85,8 @@ async function images() {
   }
 
   console.log('Avatar UGC 3:4');
-  const avatar = ['avatar.png', 'avatar.jpeg', 'avatar.jpg'].map((f) => `${SRC}/${f}`).find(existsSync);
+  // Marcador de posición (brief v3 · J): Replace_headphones_on_woman… hasta que llegue la versión definitiva.
+  const avatar = firstOf('avatar.jpeg', 'avatar.jpg', 'avatar.png');
   if (avatar) await variants(avatar, 'avatar', [600, 1000]);
   else console.warn('  falta assets-src/avatar.*');
 
@@ -116,7 +120,6 @@ async function images() {
       await sharp(`${camDir}/${p.file}`).resize({ width: w }).png({ compressionLevel: 9, palette: true }).toFile(`${OUT}/volt-camera/${base}.png`);
       console.log(`  ${base}  webp ${kb(`${OUT}/volt-camera/${base}.webp`)}`);
     }
-    writeFileSync('src/volt-camera.json', JSON.stringify(manifest, null, 2) + '\n');
   }
 }
 
@@ -144,23 +147,29 @@ function videos() {
   const list = [
     { id: 'cine', poster: 1.2 },
     { id: 'ugc1', poster: 0.8 },
-    { id: 'ugc2', poster: 1, start: Number(process.env.UGC2_START ?? 0), duration: Number(process.env.UGC2_DURATION ?? 12) },
+    {
+      id: 'ugc2',
+      poster: 1,
+      ...(process.env.UGC2_START || process.env.UGC2_DURATION
+        ? { start: Number(process.env.UGC2_START ?? 0), duration: Number(process.env.UGC2_DURATION ?? 12) }
+        : {}),
+    },
   ];
-  // 720×1280 basta para un 9:16 que en pantalla no pasa de ~70 dvh y deja cada pieza muy por debajo de 4 MB.
-  const scale = 'scale=720:1280:flags=lanczos,fps=30';
+  // Brief v3 · J: 1080×1920, H.264 +faststart y VP9. Objetivo ≤ 2 MB por pieza.
+  const scale = 'scale=1080:1920:flags=lanczos';
 
   for (const v of list) {
     const input = `${SRC}/video-${v.id}.mov`;
     if (!has(input)) continue;
     const cut = v.start !== undefined ? ['-ss', String(v.start), '-t', String(v.duration)] : [];
     console.log(`Vídeo ${v.id}`);
-    ff([...cut, '-i', input, '-vf', scale, '-c:v', 'libx264', '-profile:v', 'high', '-preset', 'slow', '-crf', '22',
-      '-maxrate', '3200k', '-bufsize', '6400k', '-pix_fmt', 'yuv420p', '-movflags', '+faststart',
+    ff([...cut, '-i', input, '-vf', scale, '-c:v', 'libx264', '-profile:v', 'high', '-preset', 'slow', '-crf', '24',
+      '-maxrate', '1500k', '-bufsize', '3000k', '-pix_fmt', 'yuv420p', '-movflags', '+faststart',
       '-c:a', 'aac', '-b:a', '96k', '-ac', '2', `${OUT}/video-${v.id}.mp4`]);
-    ff([...cut, '-i', input, '-vf', scale, '-c:v', 'libvpx-vp9', '-crf', '34', '-b:v', '2800k', '-row-mt', '1',
+    ff([...cut, '-i', input, '-vf', scale, '-c:v', 'libvpx-vp9', '-crf', '36', '-b:v', '1300k', '-row-mt', '1',
       '-deadline', 'good', '-cpu-used', '2', '-c:a', 'libopus', '-b:a', '80k', `${OUT}/video-${v.id}.webm`]);
     const at = (v.start ?? 0) + v.poster;
-    ff(['-ss', String(at), '-i', input, '-frames:v', '1', '-vf', 'scale=720:1280:flags=lanczos', '-q:v', '3', `${OUT}/video-${v.id}-poster.jpg`]);
+    ff(['-ss', String(at), '-i', input, '-frames:v', '1', '-vf', 'scale=1080:1920:flags=lanczos', '-q:v', '3', `${OUT}/video-${v.id}-poster.jpg`]);
     console.log(`  mp4 ${kb(`${OUT}/video-${v.id}.mp4`)} · webm ${kb(`${OUT}/video-${v.id}.webm`)}`);
   }
 }

@@ -16,7 +16,10 @@ const FLASH_TOTAL_MS = 460;
 export function Hero() {
   const ref = useRef<HTMLElement>(null);
   const reduced = useReducedMotion();
-  const index = useSequence(ref, 3, !reduced);
+  // El paso 1 ↔ 2 lleva el flash: el estado siguiente espera a que el blanco se retire antes de contar su permanencia.
+  const { index, fast } = useSequence(ref, 3, !reduced, {
+    extraHold: (from, to) => ((from === 0) !== (to === 0) ? FLASH_TOTAL_MS - FLASH_SWAP_MS : 0),
+  });
   const [shown, setShown] = useState(reduced ? 2 : 0);
   const [flashId, setFlashId] = useState(0);
   const [flashing, setFlashing] = useState(false);
@@ -54,7 +57,7 @@ export function Hero() {
     <section
       id="top"
       ref={ref}
-      className={`hero ${reduced ? 'hero--static' : ''} ${flashing ? 'is-flashing' : ''}`}
+      className={`hero ${reduced ? 'hero--static' : ''} ${flashing ? 'is-flashing' : ''} ${fast ? 'is-fast' : ''} ${shown > 0 ? 'hero--revelado' : ''}`}
       data-state={shown + 1}
       aria-labelledby="hero-title"
     >

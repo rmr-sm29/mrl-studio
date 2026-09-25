@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { video } from '../media';
-import { useIsMobile, useReducedMotion } from '../hooks';
+import { useReducedMotion } from '../hooks';
 import { Ficha } from './Ficha';
 
 type Props = {
@@ -19,9 +19,11 @@ const UNMUTE_EVENT = 'mrl:unmute';
 
 export function VideoPiece({ id, meta, tech, active, className = '', caption = true }: Props) {
   const ref = useRef<HTMLVideoElement>(null);
-  const isMobile = useIsMobile();
   const reduced = useReducedMotion();
-  const manual = isMobile || reduced; // sin autoplay: póster + play bajo demanda
+  // Brief v3 · K: autoplay también en móvil. Solo queda en manual (póster + play) con movimiento reducido
+  // o cuando el navegador rechaza play() (Modo de Bajo Consumo de iOS, ahorro de datos).
+  const [blocked, setBlocked] = useState(false);
+  const manual = reduced || blocked;
   const [muted, setMuted] = useState(true);
   const [playing, setPlaying] = useState(false);
   const [inView, setInView] = useState(false);
@@ -42,7 +44,10 @@ export function VideoPiece({ id, meta, tech, active, className = '', caption = t
     const el = ref.current;
     if (!el) return;
     if (isActive && !manual) {
-      el.play().catch(() => {});
+      el.play().catch((err: DOMException) => {
+        // AbortError = un pause() posterior interrumpió la carga; no es un bloqueo.
+        if (err?.name !== 'AbortError') setBlocked(true);
+      });
     } else if (!isActive) {
       // Al salir el estado: pausa y rebobina.
       el.pause();
@@ -76,7 +81,7 @@ export function VideoPiece({ id, meta, tech, active, className = '', caption = t
   const togglePlay = () => {
     const el = ref.current;
     if (!el) return;
-    if (el.paused) el.play().catch(() => {});
+    if (el.paused) el.play().then(() => setBlocked(false)).catch(() => {});
     else el.pause();
   };
 
@@ -90,7 +95,7 @@ export function VideoPiece({ id, meta, tech, active, className = '', caption = t
           muted
           loop
           playsInline
-          preload="none"
+          preload="metadata"
           poster={src.poster}
           onPlay={() => setPlaying(true)}
           onPause={() => setPlaying(false)}

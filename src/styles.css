@@ -219,11 +219,32 @@ html[data-accent-lock] .header .wordmark { --dot: var(--bone); }
   overflow: hidden;
   background: var(--beige);
 }
-.hero__media { position: absolute; inset: 0; opacity: 0; }
-.hero:not([data-state='1']) .hero__media { opacity: 1; }
+.hero__media { position: absolute; inset: 0; background: var(--beige); }
 .hero__media picture, .hero__img { width: 100%; height: 100%; }
 /* Escritorio: a sangre y sin scrim (tercio izquierdo con luminancia media ~76: el hueso contrasta ≥ 4,9:1). */
 .hero__img { object-fit: cover; object-position: 68% 50%; }
+/* Brief v3 · A: en el estado 1 la imagen ya está, muy atenuada y desenfocada sobre el beige; el flash la revela.
+   El desenfoque importa tanto como la opacidad: sin él se adivina la figura. Contraste del texto grafito ≥ 9,5:1 incluso
+   en el peor caso (imagen negra al 14 %). */
+.hero__img {
+  opacity: 0.14;
+  filter: blur(12px) saturate(0.35) brightness(1.1);
+  transition: opacity 120ms, filter 120ms;
+}
+.hero--revelado .hero__img { opacity: 1; filter: none; }
+/* Brief v3 · H: grano fino solo sobre la imagen del hero (el reescalado alisó la piel). No aplicar a los vídeos. */
+.hero__media::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0.07;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 220px 220px;
+}
+@media (min-resolution: 2dppx) { .hero__media::after { background-size: 300px 300px; } }
 .hero__scrim { position: absolute; inset: 0; pointer-events: none; }
 
 .hero__copy {
@@ -323,6 +344,9 @@ html[data-accent-lock] .header .wordmark { --dot: var(--bone); }
 }
 .hero.is-flashing .hero__line,
 .hero.is-flashing .hero__cta { transition: none !important; }
+/* Brief v3 · B: con estados en cola, la transición baja a 180 ms */
+.hero.is-fast .hero__line,
+.hero.is-fast .hero__cta { transition-duration: 0.18s !important; transition-delay: 0s !important; }
 
 /* Indicador de scroll: no aparece durante el primer segundo */
 .hero__scroll {
@@ -424,6 +448,9 @@ html[data-accent-lock] .header .wordmark { --dot: var(--bone); }
   transition: opacity 0.48s var(--ease) 0.08s, transform 0.62s var(--ease) 0.04s, visibility 0s;
 }
 .seq.is-pinned .seq__state > .container { width: 100%; }
+/* Brief v3 · B: con estados en cola, la transición baja a 180 ms */
+.seq.is-pinned.is-fast .seq__state,
+.seq.is-pinned.is-fast .seq__state[data-rel='active'] { transition-duration: 0.18s; transition-delay: 0s; }
 .seq.is-stacked .seq__state { padding-block: clamp(64px, 10vw, 112px); }
 .seq.is-stacked .seq__state + .seq__state { border-top: 1px solid var(--line); }
 
@@ -448,22 +475,23 @@ html[data-accent-lock] .header .wordmark { --dot: var(--bone); }
 
 /* ───────────────────────── Portfolio ───────────────────────── */
 .portfolio { background: var(--graphite); }
-.pf-title {
-  font-family: var(--mono);
-  font-size: 0.76rem;
-  font-weight: 500;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--muted);
-  margin-bottom: 20px;
-}
-.pf-smallcaps {
-  font-size: 0.72rem;
+/* Brief v3 · C: los títulos de bloque son titulares, no etiquetas */
+.portfolio-titulo {
+  font-size: clamp(2.5rem, 5vw, 4rem);
   font-weight: 600;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--muted);
-  margin-bottom: 12px;
+  line-height: 1;
+  letter-spacing: -0.035em;
+  color: #f4f1ea;
+  margin-bottom: clamp(18px, 3dvh, 28px);
+}
+/* Brief v3 · D: título del avatar, por debajo de "UGC" pero legible (anula las versalitas atenuadas del v2) */
+.avatar-titulo {
+  font-size: clamp(1.25rem, 2vw, 1.75rem);
+  font-weight: 550;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: #f4f1ea;
+  margin-bottom: 14px;
 }
 
 /* 00 · Entrada */
@@ -574,6 +602,7 @@ html[data-accent-lock] .header .wordmark { --dot: var(--bone); }
 
 /* 02 · UGC */
 .pf-ugc__grid { display: grid; gap: 32px; }
+.pf-ugc__avatar .piece__frame { max-width: 300px; }
 .pf-ugc__videos { display: grid; gap: 24px; }
 .pf-ugc__desc { margin-top: 14px; max-width: 36ch; color: var(--bone-2); font-size: 0.98rem; }
 .pf-ugc__reach { margin-top: 24px; max-width: 60ch; font-size: 1.02rem; color: var(--bone); }
@@ -585,26 +614,31 @@ html[data-accent-lock] .header .wordmark { --dot: var(--bone); }
   .pf-ugc__videos { grid-template-columns: repeat(2, 1fr); }
   .pf-products__grid { grid-template-columns: repeat(3, 1fr); }
   .pf-cine__grid { grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); align-items: end; }
-  .pf-ugc__grid { grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); align-items: end; }
+  /* Brief v3 · D: vídeos 58 % · separación clamp(48px, 6vw, 96px) · avatar hasta 30 %, alineado arriba */
+  .pf-ugc__grid { grid-template-columns: minmax(0, 58%) minmax(0, 30%); column-gap: clamp(48px, 6vw, 96px); align-items: start; }
 }
 
 /* Anclado: cada estado cabe en una pantalla. Las piezas se dimensionan por altura (dvh) con tope por anchura. */
 .seq.is-pinned.portfolio {
-  --fh: min(64dvh, 700px);
+  --fh: min(62dvh, 680px);
 }
 .seq.is-pinned .pf-cine__grid { grid-template-columns: auto minmax(0, 1fr); gap: clamp(32px, 5vw, 88px); align-items: center; }
 .seq.is-pinned .pf-cine__video .piece__frame { height: min(var(--fh), calc((100vw - 2 * var(--gutter)) * 0.46)); width: auto; }
 .seq.is-pinned .pf-stills { max-width: min(400px, 42dvh); }
 
-.seq.is-pinned .pf-ugc { --uh: min(54dvh, 620px, calc((100vw - 2 * var(--gutter) - 112px) / 1.875)); }
-.seq.is-pinned .pf-ugc__grid { grid-template-columns: auto auto; justify-content: start; gap: clamp(32px, 4vw, 64px); }
-.seq.is-pinned .pf-ugc__videos { grid-template-columns: auto auto; }
+.seq.is-pinned .pf-ugc { --uh: min(44dvh, 500px, calc((100vw - 2 * var(--gutter)) * 0.58 / 2 * 16 / 9 - 24px)); }
+/* El bloque UGC es el más denso del portfolio: titulares y textos un punto más contenidos para que quepa en pantalla */
+.pf-ugc .portfolio-titulo { font-size: clamp(2.1rem, 4vw, 3.25rem); margin-bottom: clamp(14px, 2.2dvh, 22px); }
+.pf-ugc .avatar-titulo { font-size: clamp(1.1rem, 1.6vw, 1.45rem); margin-bottom: 12px; }
+.pf-ugc .pf-ugc__desc { font-size: 0.9rem; margin-top: 12px; }
+.pf-ugc .pf-ugc__reach { font-size: 0.94rem; margin-top: 18px; }
+.pf-ugc .ficha__meta { font-size: 0.74rem; }
+.seq.is-pinned .pf-ugc__videos { grid-template-columns: auto auto; justify-content: start; }
 .seq.is-pinned .pf-ugc .piece__frame--9x16 { height: var(--uh); width: auto; }
-.seq.is-pinned .pf-ugc__avatar .piece__frame { height: var(--uh); width: auto; }
-.seq.is-pinned .pf-ugc__avatar { width: calc(var(--uh) * 0.75); }
+.seq.is-pinned .pf-ugc__avatar .piece__frame { width: min(100%, 260px); }
 .seq.is-pinned .pf-ugc .ficha { margin-top: 10px; }
 
-.seq.is-pinned .pf-products { --ph: min(58dvh, 640px, calc((100vw - 2 * var(--gutter) - 48px) / 3 * 4 / 3)); }
+.seq.is-pinned .pf-products { --ph: min(52dvh, 600px, calc((100vw - 2 * var(--gutter) - 48px) / 3 * 4 / 3)); }
 .seq.is-pinned .pf-products__grid { grid-template-columns: repeat(3, auto); justify-content: start; }
 .seq.is-pinned .pf-products .piece__frame { height: var(--ph); width: auto; }
 .seq.is-pinned .pf-products .piece { width: calc(var(--ph) * 0.75); }
@@ -638,26 +672,44 @@ html[data-accent-lock] .header .wordmark { --dot: var(--bone); }
 }
 
 /* ───────────────────────── VOLT (secuencia anclada, 5 estados) ───────────────────────── */
-.volt { background: var(--graphite); }
+/* Brief v3 · E: VOLT pasa a beige. Texto grafito, iniciales en ámbar oscuro (el claro no contrasta sobre beige). */
+.volt {
+  background: var(--beige);
+  color: var(--graphite);
+  --volt-muted: #8c8a83;
+  --line: rgba(12, 13, 12, 0.12);
+  --line-strong: rgba(12, 13, 12, 0.3);
+}
+.volt :focus-visible { outline-color: var(--graphite); }
+.volt .btn--primary { background: var(--graphite); color: var(--bone); }
+.volt .btn--primary:hover { background: #2a2a26; }
 
 /* Fondo: despiece de cámara al 22 %, detrás del texto (a esa opacidad no hace falta scrim) */
-.volt__bg { position: absolute; inset: 0; display: grid; place-items: center; pointer-events: none; }
+.volt__bg { position: absolute; inset: 0; display: grid; place-items: center; pointer-events: none; overflow: hidden; }
+/* Las piezas montadas se desplazan fuera del lienzo: sin este recorte ensanchaban el viewport en móvil */
 .seq.is-stacked .volt__bg { position: absolute; inset: 0 0 auto 0; height: min(48dvh, 440px); }
-.volt-cam {
+/* Brief v3 · F: sin fondo propio; cada pieza en un envoltorio del tamaño del lienzo para que el % de dx sea el correcto */
+.volt-camara {
   position: relative;
   width: min(100%, calc(100dvh * 1.7917));
   aspect-ratio: 2752 / 1536;
-  container-type: inline-size;
-  opacity: 0.22;
+  background: none;
 }
-.volt__bg.is-animated .volt-cam { transition: --p 1.4s var(--ease-out); }
-.volt-cam__piece {
+.volt__bg.is-animated .volt-camara { transition: --p 1.4s var(--ease-out); }
+.pieza-wrap {
   position: absolute;
+  inset: 0;
+  transform: translateX(calc(var(--dx) * (1 - var(--p)) * var(--k, 1)));
+  will-change: transform;
+}
+.pieza-wrap img {
+  position: absolute;
+  left: var(--x);
+  top: var(--y);
+  width: var(--w);
   height: auto;
   max-width: none;
-  /* x = x_montada + assemble_dx × −p (dx en % del lienzo = cqw) */
-  transform: translateX(calc(var(--dx) * -1cqw * var(--p) * var(--k, 1)));
-  will-change: transform;
+  opacity: 0.13; /* piezas negras sobre beige: 12-15 % */
 }
 
 .volt .seq__state { z-index: 1; }
@@ -667,7 +719,7 @@ html[data-accent-lock] .header .wordmark { --dot: var(--bone); }
   font-weight: 600;
   letter-spacing: -0.05em;
 }
-.volt-intro__steps { margin-top: 22px; font-size: clamp(1.1rem, 2vw, 1.6rem); color: var(--bone-2); letter-spacing: -0.01em; }
+.volt-intro__steps { margin-top: 22px; font-size: clamp(1.1rem, 2vw, 1.6rem); color: var(--graphite); letter-spacing: -0.01em; }
 
 .volt-step__grid { display: grid; gap: 24px 64px; }
 @media (min-width: 768px) {
@@ -679,20 +731,20 @@ html[data-accent-lock] .header .wordmark { --dot: var(--bone); }
   line-height: 0.8;
   font-weight: 700;
   letter-spacing: -0.06em;
-  color: var(--amber);
+  color: var(--amber-on-light); /* #A9641A: 3,2:1 sobre beige, válido para texto grande */
 }
 .volt-step--last .volt-step__letter { font-size: clamp(5rem, min(12vw, 15dvh), 10rem); }
 .volt-step__name { margin-top: 16px; font-size: clamp(1.6rem, 2.6vw, 2.3rem); font-weight: 500; letter-spacing: -0.02em; }
-.volt-step__what { margin-top: 6px; color: var(--muted); }
+.volt-step__what { margin-top: 6px; color: var(--volt-muted); }
 .volt-step__body { font-size: clamp(1.02rem, 1.3vw, 1.16rem); max-width: 46ch; }
 .volt-step__closing { margin-top: 18px; font-weight: 650; font-size: clamp(1.05rem, 1.4vw, 1.25rem); max-width: 40ch; }
-.volt-step__out { margin-top: 20px; font-size: 0.92rem; color: var(--bone-2); }
-.volt-step__out span { font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); margin-right: 10px; }
+.volt-step__out { margin-top: 20px; font-size: 0.92rem; color: var(--graphite); }
+.volt-step__out span { font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--volt-muted); margin-right: 10px; }
 
 .volt-cal { display: grid; grid-template-columns: repeat(2, 1fr); border-top: 1px solid var(--line-strong); }
 @media (min-width: 768px) { .volt-cal { grid-template-columns: repeat(4, 1fr); } }
 .volt-cal li { padding: 16px 16px 16px 0; display: grid; gap: 4px; border-bottom: 1px solid var(--line); }
-.volt-cal__day { font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+.volt-cal__day { font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--volt-muted); }
 .volt-cal__phase { font-weight: 500; }
 .volt-step__foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 20px; margin-top: 22px; }
 .volt-step__deal { font-size: clamp(1.05rem, 1.6vw, 1.35rem); line-height: 1.25; letter-spacing: -0.015em; max-width: 44ch; }
@@ -804,26 +856,28 @@ html[data-accent-lock] .header .wordmark { --dot: var(--bone); }
   opacity: 0.26;
   pointer-events: none;
   color: var(--graphite);
-  --t: 0;
 }
 .clock__dial { width: 100%; height: 100%; object-fit: cover; }
 /* Plano inclinado de las agujas: reproduce el escorzo de la esfera. */
-.clock__plane {
+/* Brief v3 · G: sin transform-style: preserve-3d (el SVG es plano y rotateX ya lo aplasta). */
+.reloj-agujas {
   position: absolute;
   left: 48.5%;
-  top: 50.6%;
-  width: 71.4%;
+  top: 50.6%; /* pivote sobre el pin de latón */
+  width: 71.4%; /* diámetro = eje mayor de la elipse */
   aspect-ratio: 1;
   translate: -50% -50%;
   transform: rotate(-5.6deg) rotateX(61deg);
-  transform-style: preserve-3d;
 }
-.clock__ring, .clock__hands { position: absolute; inset: 0; width: 100%; height: 100%; }
-.clock__hands { fill: #0c0d0c; }
-.clock__hour, .clock__minute { transform-origin: 100px 100px; }
-/* 10:10 → 10:25. Minutera 60° → 150°, horaria 305° → 312,5°. */
-.clock__hour { transform: rotate(calc(305deg + 7.5deg * var(--t))); }
-.clock__minute { transform: rotate(calc(60deg + 90deg * var(--t))); }
+.clock__ring, .reloj-agujas svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.horaria, .minutera {
+  fill: #0c0d0c;
+  transform-box: view-box;
+  transform-origin: 100px 100px;
+}
+/* 10:10 → 10:25, ligado al scroll (nunca con animation): --h 305° → 312,5° · --m 60° → 150° */
+.horaria { transform: rotate(var(--h, 305deg)); }
+.minutera { transform: rotate(var(--m, 60deg)); }
 .clock--fallback { opacity: 0.14; }
 
 /* Calendario Cal.com */

@@ -51,11 +51,15 @@ export const portfolio = {
     title: 'UGC',
     videos: [
       { id: 'ugc1', meta: '9:16 · Solar facial · 10 s' },
-      // Ficha pendiente de confirmar tras el recorte final de 0910.mov (brief §18, decisión 2).
-      { id: 'ugc2', meta: '9:16 · Audio · 10 s' },
+      // Brief v3 · J: clip recortado a 11,4 s (decisión pendiente nº 2 cerrada).
+      {
+        id: 'ugc2',
+        meta: '9:16 · Audio · 11 s',
+        tech: 'Cámara frontal en interior con luz de ventana, producto en mano y voz sincronizada en castellano.',
+      },
     ],
     avatarLabel: 'Avatares UGC',
-    avatarDesc: 'Mujer, 25-30. Melena castaña, registro cercano. Es el mismo avatar del segundo clip.',
+    avatarDesc: 'Avatares digitales con consistencia real que escalan el contenido de tu marca los 365 días del año',
     reach: 'Los avatares se reutilizan en cualquier formato: UGC, spot cinematográfico o imagen de producto.',
   },
   products: {
@@ -70,9 +74,9 @@ export const portfolio = {
 
 export const problem = {
   heading: 'Producir vídeo publicitario cuesta más de lo que parece',
-  // Verificar el rango de tarifa UGC en España antes de publicar (brief §18, decisión 3).
+  // Brief v3 · L: 300-400 € (antes 400-800 €).
   stats: [
-    { from: 400, to: 800, suffix: ' €', text: 'Lo que cobra un creador UGC por una sola pieza. Sin contar el briefing, los retrasos ni las repeticiones.' },
+    { from: 300, to: 400, suffix: ' €', text: 'Lo que cobra un creador UGC por una sola pieza. Sin contar el briefing, los retrasos ni las repeticiones.' },
     { from: 2, to: 3, suffix: ' semanas', text: 'Lo que tarda una producción tradicional desde el brief hasta la entrega. Si hay casting, más.' },
     { to: 1, suffix: ' creatividad', text: 'Lo que puedes testear con ese presupuesto. Si no funciona, vuelta a empezar.' },
   ] as { from?: number; to: number; suffix: string; text: string }[],

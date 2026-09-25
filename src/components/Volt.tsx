@@ -15,9 +15,10 @@ export function Volt() {
   const reduced = useReducedMotion();
 
   const onProgress = useCallback((p: number) => {
-    camRef.current?.style.setProperty('--p', p.toFixed(4));
+    // El estado 00 arranca exactamente en --p: 0 (brief v3 · F, prueba 2)
+    camRef.current?.style.setProperty('--p', p < 0.0005 ? '0' : p.toFixed(4));
   }, []);
-  const active = useSequence(ref, 5, pinned, onProgress);
+  const { index: active, fast } = useSequence(ref, 5, pinned, { onProgress });
 
   // Sin anclaje: las piezas se separan en una animación corta al entrar la sección. Con movimiento reducido: despiece completo, quieto.
   const seen = useInViewOnce(ref, '0px 0px -30% 0px');
@@ -46,7 +47,7 @@ export function Volt() {
   });
 
   return (
-    <section id="metodo" ref={ref} className={`seq volt ${pinned ? 'is-pinned' : 'is-stacked'}`} style={{ '--states': 5 } as React.CSSProperties} aria-labelledby="metodo-title">
+    <section id="metodo" ref={ref} className={`seq volt ${pinned ? 'is-pinned' : 'is-stacked'} ${fast ? 'is-fast' : ''}`} style={{ '--states': 5 } as React.CSSProperties} aria-labelledby="metodo-title">
       <div className="seq__stage">
         <div className={`volt__bg ${pinned ? '' : 'is-animated'}`}>
           <VoltCamera ref={camRef} />

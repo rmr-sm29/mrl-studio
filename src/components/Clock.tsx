@@ -4,7 +4,7 @@ import { sizes, srcset } from '../media';
 /**
  * Reloj de fondo del cierre. Esfera fotográfica sin agujas + agujas en SVG sobre un plano inclinado
  * que reproduce el escorzo de la esfera (61°, eje mayor rotado −5,6°, pivote en 48,5 % / 50,6 %).
- * El giro lo controla la variable --t (0-1) que escribe el cierre según su scroll: 10:10 → 10:25.
+ * El giro lo controlan --h y --m, que escribe el cierre según su scroll: 10:10 → 10:25.
  */
 export const Clock = forwardRef<HTMLDivElement>(function Clock(_props, ref) {
   const [dialOk, setDialOk] = useState(true);
@@ -17,7 +17,7 @@ export const Clock = forwardRef<HTMLDivElement>(function Clock(_props, ref) {
           <img className="clock__dial" src="/media/clock-dial-1920.jpg" alt="" loading="lazy" decoding="async" onError={() => setDialOk(false)} />
         </picture>
       )}
-      <div className="clock__plane">
+      <div className="reloj-agujas">
         {/* Esfera provisional mientras no exista la foto (assets-src/clock-dial.jpeg) */}
         {!dialOk && (
           <svg className="clock__ring" viewBox="0 0 200 200">
@@ -28,15 +28,10 @@ export const Clock = forwardRef<HTMLDivElement>(function Clock(_props, ref) {
             ))}
           </svg>
         )}
-        <svg className="clock__hands" viewBox="0 0 200 200">
-          {/* Horaria: más corta y ancha. Minutera: más larga y fina (≤ 75 % del radio). Sin segundero. */}
-          <g className="clock__hour">
-            <path d="M100 48 L104.2 96 L100 108 L95.8 96 Z" />
-          </g>
-          <g className="clock__minute">
-            <path d="M100 26 L102.4 96 L100 110 L97.6 96 Z" />
-          </g>
-          <circle cx="100" cy="100" r="3.2" />
+        {/* Brief v3 · G: horaria más corta y ancha, minutera más larga y fina (≤ 75 % del radio). Sin segundero. */}
+        <svg viewBox="0 0 200 200">
+          <path className="horaria" d="M100 100 L96.5 54 L100 47 L103.5 54 Z" />
+          <path className="minutera" d="M100 100 L98 33 L100 26 L102 33 Z" />
         </svg>
       </div>
     </div>

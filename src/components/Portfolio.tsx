@@ -25,12 +25,12 @@ function Picture({ base, widths, sizesAttr, w, h, className }: { base: string; w
 export function Portfolio() {
   const ref = useRef<HTMLElement>(null);
   const pinned = usePinned();
-  const active = useSequence(ref, 4, pinned);
+  const { index: active, fast } = useSequence(ref, 4, pinned);
   const { intro, cinematic, ugc, products } = portfolio;
   const isOn = (i: number) => (pinned ? active === i : undefined);
 
   return (
-    <section id="trabajo" ref={ref} className={`seq portfolio ${pinned ? 'is-pinned' : 'is-stacked'}`} style={{ '--states': 4 } as React.CSSProperties} aria-labelledby="trabajo-title">
+    <section id="trabajo" ref={ref} className={`seq portfolio ${pinned ? 'is-pinned' : 'is-stacked'} ${fast ? 'is-fast' : ''}`} style={{ '--states': 4 } as React.CSSProperties} aria-labelledby="trabajo-title">
       <div className="seq__stage">
         <p className="seq__numeral" aria-hidden="true">
           {['01', '02', '03'].map((n, i) => (
@@ -62,7 +62,7 @@ export function Portfolio() {
           <div className="container pf-cine__grid">
             <VideoPiece id={cinematic.video.id} meta={cinematic.video.meta} active={isOn(1)} caption={false} className="pf-cine__video" />
             <div className="pf-cine__side">
-              <h3 className="pf-title">{cinematic.title}</h3>
+              <h3 className="portfolio-titulo">{cinematic.title}</h3>
               <Ficha meta={cinematic.video.meta} tech={cinematic.video.tech} />
               <ol className="pf-stills" aria-label="Fotogramas del spot">
                 {cinematic.stills.map((s) => (
@@ -80,7 +80,7 @@ export function Portfolio() {
         {/* 02 · UGC: dos vídeos (~60 %) y el avatar a ancho completo de su columna (~40 %) */}
         <div className="seq__state pf-ugc" data-rel={pinned ? rel(2, active) : 'active'} inert={pinned && active !== 2}>
           <div className="container">
-            <h3 className="pf-title">{ugc.title}</h3>
+            <h3 className="portfolio-titulo">{ugc.title}</h3>
             <div className="pf-ugc__grid">
               <div className="pf-ugc__videos">
                 {ugc.videos.map((v) => (
@@ -88,9 +88,9 @@ export function Portfolio() {
                 ))}
               </div>
               <div className="pf-ugc__avatar">
-                <p className="pf-smallcaps">{ugc.avatarLabel}</p>
+                <h4 className="avatar-titulo">{ugc.avatarLabel}</h4>
                 <div className="piece__frame piece__frame--3x4">
-                  <Picture base="avatar" widths={sizes.product} sizesAttr="(min-width: 1025px) 28vw, 100vw" w={1536} h={2048} />
+                  <Picture base="avatar" widths={sizes.product} sizesAttr="(min-width: 768px) 300px, 100vw" w={1792} h={2400} />
                 </div>
                 <p className="pf-ugc__desc">{ugc.avatarDesc}</p>
               </div>
@@ -102,7 +102,7 @@ export function Portfolio() {
         {/* 03 · Imagen de producto: rejilla de tres 3:4 a la misma altura */}
         <div className="seq__state pf-products" data-rel={pinned ? rel(3, active) : 'active'} inert={pinned && active !== 3}>
           <div className="container">
-            <h3 className="pf-title">{products.title}</h3>
+            <h3 className="portfolio-titulo">{products.title}</h3>
             <div className="pf-products__grid">
               {products.items.map((p) => (
                 <figure key={p.id} className="piece piece--image">
