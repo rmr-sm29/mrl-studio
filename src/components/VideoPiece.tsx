@@ -1,35 +1,54 @@
 import { useEffect, useRef, useState } from 'react';
 import { video } from '../media';
 import { useIsMobile, useReducedMotion } from '../hooks';
+import { Ficha } from './Ficha';
 
-type Props = { id: string; title: string; desc: string; featured?: boolean; headingLevel?: 'h3' | 'h4' };
+type Props = {
+  id: string;
+  meta: string;
+  tech?: string;
+  /** Controlado por la secuencia: solo se reproduce el vídeo del estado activo. Sin definir → según viewport. */
+  active?: boolean;
+  className?: string;
+  /** false cuando la ficha se pinta fuera, junto a la pieza (estado cinematográfico). */
+  caption?: boolean;
+};
 
 // Al activar el sonido de un vídeo, el resto se silencia.
 const UNMUTE_EVENT = 'mrl:unmute';
 
-export function VideoPiece({ id, title, desc, featured = false, headingLevel: H = 'h3' }: Props) {
+export function VideoPiece({ id, meta, tech, active, className = '', caption = true }: Props) {
   const ref = useRef<HTMLVideoElement>(null);
   const isMobile = useIsMobile();
   const reduced = useReducedMotion();
   const manual = isMobile || reduced; // sin autoplay: póster + play bajo demanda
   const [muted, setMuted] = useState(true);
   const [playing, setPlaying] = useState(false);
+  const [inView, setInView] = useState(false);
   const src = video(id);
 
-  // Escritorio: autoplay silenciado en bucle cuando supera el 50 % de viewport; pausa al salir.
+  // Fuera de una secuencia anclada, "activo" = más de la mitad del vídeo en pantalla.
   useEffect(() => {
     const el = ref.current;
-    if (!el || manual) return;
-    const io = new IntersectionObserver(
-      ([e]) => {
-        if (e.isIntersecting) el.play().catch(() => {});
-        else el.pause();
-      },
-      { threshold: 0.5 },
-    );
+    if (!el || active !== undefined) return;
+    const io = new IntersectionObserver(([e]) => setInView(e.isIntersecting), { threshold: 0.5 });
     io.observe(el);
     return () => io.disconnect();
-  }, [manual]);
+  }, [active]);
+
+  const isActive = active ?? inView;
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    if (isActive && !manual) {
+      el.play().catch(() => {});
+    } else if (!isActive) {
+      // Al salir el estado: pausa y rebobina.
+      el.pause();
+      if (el.currentTime > 0) el.currentTime = 0;
+    }
+  }, [isActive, manual]);
 
   useEffect(() => {
     const onOther = (e: Event) => {
@@ -61,9 +80,11 @@ export function VideoPiece({ id, title, desc, featured = false, headingLevel: H 
     else el.pause();
   };
 
+  const label = meta.replace(/\s·\s/g, ', ');
+
   return (
-    <figure className={`piece piece--video ${featured ? 'piece--featured' : ''}`}>
-      <div className="piece__frame piece__frame--9x16 sd-grow">
+    <figure className={`piece piece--video ${className}`}>
+      <div className="piece__frame piece__frame--9x16">
         <video
           ref={ref}
           muted
@@ -73,13 +94,14 @@ export function VideoPiece({ id, title, desc, featured = false, headingLevel: H 
           poster={src.poster}
           onPlay={() => setPlaying(true)}
           onPause={() => setPlaying(false)}
-          aria-label={title}
+          aria-label={label}
+          tabIndex={-1}
         >
           <source src={src.webm} type="video/webm" />
           <source src={src.mp4} type="video/mp4" />
         </video>
         {manual && (
-          <button type="button" className={`piece__play ${playing ? 'is-playing' : ''}`} onClick={togglePlay} aria-label={playing ? `Pausar: ${title}` : `Reproducir: ${title}`}>
+          <button type="button" className={`piece__play ${playing ? 'is-playing' : ''}`} onClick={togglePlay} aria-label={playing ? `Pausar: ${label}` : `Reproducir: ${label}`}>
             <span aria-hidden="true">{playing ? <PauseIcon /> : <PlayIcon />}</span>
           </button>
         )}
@@ -87,10 +109,11 @@ export function VideoPiece({ id, title, desc, featured = false, headingLevel: H 
           {muted ? <MutedIcon /> : <SoundIcon />}
         </button>
       </div>
-      <figcaption className="ficha sd-rise">
-        <H className="ficha__title">{title}</H>
-        {desc && <p className="ficha__desc">{desc}</p>}
-      </figcaption>
+      {caption && (
+        <figcaption>
+          <Ficha meta={meta} tech={tech} />
+        </figcaption>
+      )}
     </figure>
   );
 }

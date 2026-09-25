@@ -1,19 +1,51 @@
-import { useEffect, useRef } from 'react';
-import { capabilities } from '../content';
+import { Fragment, useEffect, useRef } from 'react';
+import { marquee } from '../content';
 import { useReducedMotion } from '../hooks';
 
-const BASE_SPEED = 0.35; // px por frame a 60 fps
 const SCROLL_GAIN = 0.12;
 
+type RowProps = { terms: string[]; thumbs: string[]; trackRef: React.RefObject<HTMLDivElement | null> };
+
+// Tira mixta: término · miniatura · término… Los separadores (punto medio ámbar) son el único acento de la franja.
+function Row({ terms, thumbs, trackRef }: RowProps) {
+  const set = (hidden: boolean, offset: number) => (
+    <ul className="marquee__row" aria-hidden={hidden || undefined}>
+      {/* Cada mitad repite la lista dos veces para cubrir pantallas anchas sin hueco en el bucle */}
+      {[...terms, ...terms].map((t, i) => (
+        <Fragment key={i}>
+          <li className="marquee__term">{t}</li>
+          <li className="marquee__sep" aria-hidden="true" style={{ animationDelay: `${-((i + offset) * 0.7) % 2.8}s` }} />
+          <li className="marquee__thumb" aria-hidden="true">
+            <img src={`/media/thumbs/${thumbs[i % thumbs.length]}.webp`} alt="" width={34} height={60} loading="lazy" decoding="async" />
+          </li>
+          <li className="marquee__sep" aria-hidden="true" style={{ animationDelay: `${-((i + offset) * 0.7 + 0.35) % 2.8}s` }} />
+        </Fragment>
+      ))}
+    </ul>
+  );
+  return (
+    <div className="marquee__track" ref={trackRef}>
+      {set(false, 0)}
+      {set(true, 2)}
+    </div>
+  );
+}
+
 export function Marquee() {
-  const trackRef = useRef<HTMLDivElement>(null);
+  const topRef = useRef<HTMLDivElement>(null);
+  const bottomRef = useRef<HTMLDivElement>(null);
   const reduced = useReducedMotion();
 
   useEffect(() => {
-    const track = trackRef.current;
-    if (!track || reduced) return;
+    const top = topRef.current;
+    const bottom = bottomRef.current;
+    if (!top || !bottom || reduced) return;
 
-    let x = 0;
+    // Fila superior hacia la izquierda, inferior hacia la derecha, a velocidades ligeramente distintas.
+    const rows = [
+      { el: top, x: 0, speed: 0.34, sign: -1 },
+      { el: bottom, x: 0, speed: 0.27, sign: 1 },
+    ];
     let dir = 1;
     let boost = 0;
     let lastY = window.scrollY;
@@ -25,26 +57,28 @@ export function Marquee() {
       const y = window.scrollY;
       const dy = y - lastY;
       lastY = y;
-      if (dy !== 0) dir = dy > 0 ? 1 : -1;
-      boost = Math.min(boost + Math.abs(dy) * SCROLL_GAIN, 30);
+      if (dy !== 0) dir = dy > 0 ? 1 : -1; // al scrollear hacia arriba, ambas filas invierten su sentido
+      boost = Math.min(boost + Math.abs(dy) * SCROLL_GAIN, 28);
     };
 
     const tick = (now: number) => {
       const dt = Math.min((now - last) / 16.67, 3);
       last = now;
       if (visible) {
-        const half = track.scrollWidth / 2;
-        x -= (BASE_SPEED + boost) * dir * dt;
-        if (x <= -half) x += half;
-        if (x > 0) x -= half;
-        track.style.transform = `translate3d(${x}px,0,0)`;
+        for (const r of rows) {
+          const half = r.el.scrollWidth / 2;
+          r.x += (r.speed + boost * r.speed * 2.4) * r.sign * dir * dt;
+          if (r.x <= -half) r.x += half;
+          if (r.x > 0) r.x -= half;
+          r.el.style.transform = `translate3d(${r.x}px,0,0)`;
+        }
       }
       boost *= 0.92;
       raf = requestAnimationFrame(tick);
     };
 
     const io = new IntersectionObserver(([e]) => (visible = e.isIntersecting));
-    io.observe(track);
+    io.observe(top);
     window.addEventListener('scroll', onScroll, { passive: true });
     raf = requestAnimationFrame(tick);
     return () => {
@@ -54,23 +88,10 @@ export function Marquee() {
     };
   }, [reduced]);
 
-  const row = (hidden: boolean) => (
-    <ul className="marquee__row" aria-hidden={hidden || undefined}>
-      {capabilities.map((c) => (
-        <li key={c}>
-          {c}
-          <span className="marquee__sep" aria-hidden="true">·</span>
-        </li>
-      ))}
-    </ul>
-  );
-
   return (
     <section className="marquee" aria-label="Capacidades">
-      <div className="marquee__track" ref={trackRef}>
-        {row(false)}
-        {row(true)}
-      </div>
+      <Row terms={marquee.top} thumbs={marquee.thumbsTop} trackRef={topRef} />
+      <Row terms={marquee.bottom} thumbs={marquee.thumbsBottom} trackRef={bottomRef} />
     </section>
   );
 }

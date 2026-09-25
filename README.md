@@ -1,7 +1,8 @@
 # mrl. studio — landing
 
-React 19 + Vite + TypeScript. Sin librerías de animación: todo el movimiento es CSS + IntersectionObserver
-y respeta `prefers-reduced-motion`.
+React 19 + Vite + TypeScript (brief v2). Sin librerías de animación: las tres secuencias ancladas (hero, portfolio,
+VOLT) usan `position: sticky` + un hook de progreso de scroll nativo (sin inercia añadida), y el resto es CSS +
+IntersectionObserver. Todo respeta `prefers-reduced-motion`.
 
 ```
 npm install
@@ -13,13 +14,15 @@ npm run assets     # reprocesa assets-src/ → public/media/ (requiere ffmpeg)
 - Copy: `src/content.ts` (todo el texto del brief en un solo sitio)
 - Estilos: `src/styles.css` (tokens de paleta en `:root`)
 - Legales: `src/legal/LegalPage.tsx` → **completar los datos entre [corchetes]**
+- Despiece VOLT: `src/volt-camera.json` (lo genera `npm run assets` desde `assets-src/volt-camera/manifest.json`);
+  para separar más las piezas, sube `EXPLODE_FACTOR` en `src/components/VoltCamera.tsx` (1,2-1,3)
+- Recorrido de scroll por estado de las secuencias: `--step` en `src/styles.css`
 
 ## Variables de entorno (Vercel → Settings → Environment Variables)
 
 | Variable | Ejemplo | Uso |
 |---|---|---|
-| `VITE_BOOKING_PROVIDER` | `cal` o `tidycal` | Calendario embebido |
-| `VITE_BOOKING_PATH` | `usuario/15min` | Ruta del evento en Cal.com / TidyCal |
+| `VITE_BOOKING_PATH` | `usuario/15min` | Ruta del evento en Cal.com (embebido) |
 | `VITE_CONTACT_EMAIL` | — | Email del footer y de los legales |
 | `SITE_URL` | `https://tu-dominio.com` | URL canónica, og:image y sitemap. Si falta, se usa el dominio de producción de Vercel |
 

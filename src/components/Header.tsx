@@ -6,10 +6,19 @@ export function Header() {
   const [solid, setSolid] = useState(false);
 
   useEffect(() => {
-    const onScroll = () => setSolid(window.scrollY > 8);
+    // Transparente mientras dura la secuencia del hero; sólido con sombra a partir de ahí.
+    const onScroll = () => {
+      const hero = document.getElementById('top');
+      const end = hero ? hero.offsetTop + hero.offsetHeight - window.innerHeight : 0;
+      setSolid(window.scrollY > Math.max(end, 8));
+    };
     onScroll();
     window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
+    window.addEventListener('resize', onScroll);
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', onScroll);
+    };
   }, []);
 
   return (

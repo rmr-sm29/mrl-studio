@@ -1,99 +1,118 @@
 import { useEffect, useRef, useState } from 'react';
 import { hero } from '../content';
-import { heroSizes, srcset } from '../media';
-import { useIsMobile } from '../hooks';
+import { sizes, srcset } from '../media';
+import { useReducedMotion, useSequence } from '../hooks';
 
-// Mismo criterio que el CSS y el preload de index.html: móvil y tablet en vertical usan el recorte 4:5.
-const STACKED = '(max-width: 767px), (max-width: 1024px) and (orientation: portrait)';
+// Móvil: recorte 9:16 servido como archivo aparte (brief §5), nunca object-fit sobre el 16:9.
+const MOBILE = '(max-width: 767px), (max-width: 1024px) and (orientation: portrait)';
+const FLASH_SWAP_MS = 80; // el cambio de estado ocurre dentro del pico blanco
+const FLASH_TOTAL_MS = 460;
 
+/**
+ * Secuencia anclada de 3 estados.
+ * 1 → beige liso + gancho · 2 → imagen + primera frase · 3 → misma imagen + VOLT/7 días + CTA.
+ * El único flash de la web tapa el paso 1 ↔ 2: nunca se ve un fundido cruzado.
+ */
 export function Hero() {
-  const imgRef = useRef<HTMLImageElement>(null);
-  const [lit, setLit] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
-  const isMobile = useIsMobile();
-
-  // Flash de entrada: una sola vez, cuando la imagen está lista. Si tarda, el texto no espera más de 600 ms.
-  useEffect(() => {
-    const img = imgRef.current;
-    if (img?.complete) setLit(true);
-    const t = window.setTimeout(() => setLit(true), 600);
-    return () => window.clearTimeout(t);
-  }, []);
+  const ref = useRef<HTMLElement>(null);
+  const reduced = useReducedMotion();
+  const index = useSequence(ref, 3, !reduced);
+  const [shown, setShown] = useState(reduced ? 2 : 0);
+  const [flashId, setFlashId] = useState(0);
+  const [flashing, setFlashing] = useState(false);
+  const shownRef = useRef(shown);
+  shownRef.current = shown;
 
   useEffect(() => {
-    const onScroll = () => {
-      if (window.scrollY > 4) {
-        setScrolled(true);
-        window.removeEventListener('scroll', onScroll);
-      }
+    if (reduced) {
+      setShown(2);
+      return;
+    }
+    const prev = shownRef.current;
+    if (prev === index) return;
+    const crossesFlash = (prev === 0) !== (index === 0);
+    if (!crossesFlash) {
+      setShown(index);
+      return;
+    }
+    setFlashId((n) => n + 1);
+    setFlashing(true);
+    const t = window.setTimeout(() => setShown(index), FLASH_SWAP_MS);
+    const end = window.setTimeout(() => setFlashing(false), FLASH_TOTAL_MS);
+    return () => {
+      window.clearTimeout(t);
+      window.clearTimeout(end);
     };
-    window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
-  }, []);
+  }, [index, reduced]);
+
+  // El header cambia de tinta según la superficie: grafito sobre el beige, hueso sobre la imagen.
+  useEffect(() => {
+    document.documentElement.dataset.hero = shown === 0 ? 'light' : 'image';
+  }, [shown]);
 
   return (
-    <section id="top" className={`hero ${lit ? 'is-lit' : ''}`} aria-labelledby="hero-title">
-      <div className="hero__media">
-        <picture>
-          <source media={STACKED} type="image/avif" srcSet={srcset('hero-4x5', heroSizes.tall, 'avif')} sizes="100vw" />
-          <source media={STACKED} type="image/webp" srcSet={srcset('hero-4x5', heroSizes.tall, 'webp')} sizes="100vw" />
-          <source media={STACKED} srcSet={srcset('hero-4x5', heroSizes.tall, 'jpg')} sizes="100vw" />
-          <source type="image/avif" srcSet={srcset('hero-16x9', heroSizes.wide, 'avif')} sizes="100vw" />
-          <source type="image/webp" srcSet={srcset('hero-16x9', heroSizes.wide, 'webp')} sizes="100vw" />
-          <img
-            ref={imgRef}
-            className="hero__img"
-            src="/media/hero-16x9-1920.jpg"
-            srcSet={srcset('hero-16x9', heroSizes.wide, 'jpg')}
-            sizes="100vw"
-            width={2752}
-            height={1536}
-            alt=""
-            fetchPriority="high"
-            decoding="async"
-            onLoad={() => setLit(true)}
-          />
-        </picture>
-        {hero.hasLoop && !isMobile && (
-          <video className="hero__loop" autoPlay muted loop playsInline preload="none" poster="/media/hero-16x9-1920.jpg" aria-hidden="true">
-            <source src="/media/hero-loop.webm" type="video/webm" />
-            <source src="/media/hero-loop.mp4" type="video/mp4" />
-          </video>
-        )}
-        <div className="hero__vignette" aria-hidden="true" />
-      </div>
-
-      <div className="hero__content">
-        <p className="kicker">{hero.kicker}</p>
-        <h1 id="hero-title" className="hero__title">
-          <span className="only-desktop">
-            Anuncios de <strong>alta producción y UGC</strong> todos los meses, sin esperar <strong>tres semanas</strong> ni
-            apostarlo todo a <strong>una sola creatividad</strong>, gracias a mi metodología <strong className="accent">VOLT</strong>{' '}
-            en <strong className="accent">7&nbsp;días</strong>.
-          </span>
-          <span className="only-mobile">
-            Anuncios de <strong>alta producción y UGC</strong> todos los meses, sin esperas ni apuestas a{' '}
-            <strong>una sola creatividad</strong>. Metodología <strong className="accent">VOLT</strong>,{' '}
-            <strong className="accent">7&nbsp;días</strong>.
-          </span>
-        </h1>
-        <p className="hero__sub">
-          {hero.sub}
-          <span className="only-desktop">{hero.subRest}</span>
-        </p>
-        <div className="hero__actions">
-          <a href="#agendar" className="btn btn--primary">
-            Agendar
-          </a>
-          <a href="#trabajo" className="btn btn--ghost">
-            Ver trabajo
-          </a>
+    <section
+      id="top"
+      ref={ref}
+      className={`hero ${reduced ? 'hero--static' : ''} ${flashing ? 'is-flashing' : ''}`}
+      data-state={shown + 1}
+      aria-labelledby="hero-title"
+    >
+      <div className="hero__stage">
+        <div className="hero__media">
+          <picture>
+            <source media={MOBILE} type="image/avif" srcSet={srcset('hero-mobile', sizes.heroMobile, 'avif')} sizes="100vw" />
+            <source media={MOBILE} type="image/webp" srcSet={srcset('hero-mobile', sizes.heroMobile, 'webp')} sizes="100vw" />
+            <source media={MOBILE} srcSet={srcset('hero-mobile', sizes.heroMobile, 'jpg')} sizes="100vw" />
+            <source type="image/avif" srcSet={srcset('hero-desktop', sizes.heroDesktop, 'avif')} sizes="100vw" />
+            <source type="image/webp" srcSet={srcset('hero-desktop', sizes.heroDesktop, 'webp')} sizes="100vw" />
+            <img
+              className="hero__img"
+              src="/media/hero-desktop-1920.jpg"
+              srcSet={srcset('hero-desktop', sizes.heroDesktop, 'jpg')}
+              sizes="100vw"
+              width={2752}
+              height={1536}
+              alt=""
+              fetchPriority="high"
+              decoding="async"
+            />
+          </picture>
+          <div className="hero__scrim" aria-hidden="true" />
         </div>
-        <p className="hero__proof only-desktop">{hero.proof.join(' · ')}</p>
-        <p className="hero__proof only-mobile">{hero.proofMobile.join(' · ')}</p>
-      </div>
 
-      <span className={`hero__scroll ${scrolled ? 'is-hidden' : ''}`} aria-hidden="true" />
+        <div className="hero__copy">
+          <div className="hero__lines">
+            <p className="hero__hook" aria-hidden={shown !== 0}>
+              {hero.hook}
+            </p>
+            {/* Un solo h1 estable en el DOM con las frases de los estados 2 y 3; la animación solo controla su visibilidad. */}
+            <h1 id="hero-title" className="hero__h1">
+              <span className="hero__line hero__line--2">{hero.line2}</span>{' '}
+              <span className="hero__line hero__line--3">
+                Gracias a mi metodología <span className="accent">VOLT</span> en <span className="accent">7&nbsp;días</span>.
+              </span>
+            </h1>
+          </div>
+          <p className="hero__sig" aria-hidden="true">
+            mrl. studio
+          </p>
+          <div className="hero__cta">
+            <div className="hero__actions">
+              <a href="#agendar" className="btn btn--primary" tabIndex={shown === 2 ? undefined : -1}>
+                Agendar
+              </a>
+              <a href="#trabajo" className="btn btn--ghost" tabIndex={shown === 2 ? undefined : -1}>
+                Ver trabajo
+              </a>
+            </div>
+            <p className="hero__proof">{hero.proof}</p>
+          </div>
+        </div>
+
+        {flashId > 0 && <div key={flashId} className="hero__flash" aria-hidden="true" style={{ animationDuration: `${FLASH_TOTAL_MS}ms` }} />}
+        <span className="hero__scroll" aria-hidden="true" />
+      </div>
     </section>
   );
 }

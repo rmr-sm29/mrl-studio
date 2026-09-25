@@ -1,103 +1,105 @@
-import { useEffect, useRef, useState } from 'react';
-import { volt, type VoltKey } from '../content';
-import { useIsMobile } from '../hooks';
-import { VoltVisual } from './VoltVisual';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { volt } from '../content';
+import { useInViewOnce, usePinned, useReducedMotion, useSequence } from '../hooks';
+import { rel } from './Portfolio';
+import { VoltCamera } from './VoltCamera';
 
+/**
+ * Secuencia anclada de 5 estados: 00 título · 01 V · 02 O · 03 L · 04 T + calendario + CTA.
+ * Mismo solape vertical que el portfolio. El despiece de la cámara es continuo y va ligado al progreso de toda la secuencia.
+ */
 export function Volt() {
-  const sectionRef = useRef<HTMLElement>(null);
-  const stepRefs = useRef<(HTMLElement | null)[]>([]);
-  const [active, setActive] = useState<VoltKey>('V');
-  const [inView, setInView] = useState(false);
-  const isMobile = useIsMobile();
+  const ref = useRef<HTMLElement>(null);
+  const camRef = useRef<HTMLDivElement>(null);
+  const pinned = usePinned();
+  const reduced = useReducedMotion();
 
-  // Paso activo: el que cruza la franja central del viewport.
+  const onProgress = useCallback((p: number) => {
+    camRef.current?.style.setProperty('--p', p.toFixed(4));
+  }, []);
+  const active = useSequence(ref, 5, pinned, onProgress);
+
+  // Sin anclaje: las piezas se separan en una animación corta al entrar la sección. Con movimiento reducido: despiece completo, quieto.
+  const seen = useInViewOnce(ref, '0px 0px -30% 0px');
   useEffect(() => {
-    if (isMobile) return;
-    const io = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((e) => {
-          if (e.isIntersecting) setActive((e.target as HTMLElement).dataset.key as VoltKey);
-        });
-      },
-      { rootMargin: '-45% 0px -45% 0px' },
-    );
-    stepRefs.current.forEach((el) => el && io.observe(el));
-    return () => io.disconnect();
-  }, [isMobile]);
+    if (pinned) return;
+    camRef.current?.style.setProperty('--p', reduced || seen ? '1' : '0');
+  }, [pinned, reduced, seen]);
 
   // En esta pantalla solo las cuatro iniciales llevan ámbar: el punto del wordmark del header se apaga.
+  const [inView, setInView] = useState(false);
   useEffect(() => {
-    const el = sectionRef.current;
+    const el = ref.current;
     if (!el) return;
-    const io = new IntersectionObserver(([e]) => {
-      setInView(e.isIntersecting);
-      document.documentElement.toggleAttribute('data-accent-lock', e.isIntersecting);
-    });
+    const io = new IntersectionObserver(([e]) => setInView(e.isIntersecting), { rootMargin: '-10% 0px -10% 0px' });
     io.observe(el);
-    return () => {
-      io.disconnect();
-      document.documentElement.removeAttribute('data-accent-lock');
-    };
+    return () => io.disconnect();
   }, []);
+  useEffect(() => {
+    document.documentElement.toggleAttribute('data-accent-lock', inView);
+    return () => document.documentElement.removeAttribute('data-accent-lock');
+  }, [inView]);
+
+  const state = (i: number) => ({
+    'data-rel': pinned ? rel(i, active) : 'active',
+    inert: pinned && active !== i,
+  });
 
   return (
-    <section id="metodo" ref={sectionRef} className="section volt" aria-labelledby="metodo-title">
-      <div className="container">
-        <header className="volt__head sd-rise">
-          <h2 id="metodo-title" className="section__title">{volt.heading}</h2>
-          <p className="volt__lede">{volt.lede}</p>
-        </header>
+    <section id="metodo" ref={ref} className={`seq volt ${pinned ? 'is-pinned' : 'is-stacked'}`} style={{ '--states': 5 } as React.CSSProperties} aria-labelledby="metodo-title">
+      <div className="seq__stage">
+        <div className={`volt__bg ${pinned ? '' : 'is-animated'}`}>
+          <VoltCamera ref={camRef} />
+        </div>
 
-        <div className="volt__layout">
-          <ol className="volt__steps">
-            {volt.steps.map((s, i) => (
-              <li
-                key={s.key}
-                ref={(el) => {
-                  stepRefs.current[i] = el;
-                }}
-                data-key={s.key}
-                className={`volt-step ${!isMobile && active === s.key ? 'is-active' : ''}`}
-              >
+        <div className="seq__state volt-intro" {...state(0)}>
+          <div className="container">
+            <h2 id="metodo-title" className="volt-intro__title">{volt.heading}</h2>
+            <p className="volt-intro__steps">{volt.steps.map((s) => s.name).join(' · ')}</p>
+          </div>
+        </div>
+
+        {volt.steps.map((s, i) => (
+          <div key={s.key} className={`seq__state volt-step ${s.key === 'T' ? 'volt-step--last' : ''}`} {...state(i + 1)}>
+            <div className="container volt-step__grid">
+              <div>
                 <p className="volt-step__letter" aria-hidden="true">{s.key}</p>
                 <h3 className="volt-step__name">
                   <span className="sr-only">{s.key} · </span>
                   {s.name}
                 </h3>
                 <p className="volt-step__what">{s.what}</p>
+              </div>
+              <div className="volt-step__text">
                 <p className="volt-step__body">{s.body}</p>
-                <p className="volt-step__closing">{s.closing}</p>
+                <p className="volt-step__closing">
+                  <span aria-hidden="true">→ </span>
+                  {s.closing}
+                </p>
                 <p className="volt-step__out">
                   <span>Qué sale</span> {s.out}
                 </p>
-                {isMobile && <VoltVisual state={s.key} play={s.key === 'T'} tall />}
-              </li>
-            ))}
-          </ol>
+              </div>
 
-          {!isMobile && (
-            <div className="volt__pin">
-              <VoltVisual state={active} play={inView} />
-              <p className="volt__pin-caption" aria-hidden="true">
-                {volt.steps.find((s) => s.key === active)?.key} · {volt.steps.find((s) => s.key === active)?.name}
-              </p>
+              {s.key === 'T' && (
+                <div className="volt-step__end">
+                  <ol className="volt-cal" aria-label="Calendario de 7 días">
+                    {volt.calendar.map((c) => (
+                      <li key={c.day}>
+                        <span className="volt-cal__day">{c.day}</span>
+                        <span className="volt-cal__phase">{c.step}</span>
+                      </li>
+                    ))}
+                  </ol>
+                  <div className="volt-step__foot">
+                    <p className="volt-step__deal">{volt.closing}</p>
+                    <a href="#agendar" className="btn btn--primary">Agendar</a>
+                  </div>
+                </div>
+              )}
             </div>
-          )}
-        </div>
-
-        <ol className="volt__calendar sd-rise" aria-label="Calendario de 7 días">
-          {volt.calendar.map((c) => (
-            <li key={c.day}>
-              <span className="volt__day">{c.day}</span>
-              <span className="volt__phase">{c.step}</span>
-            </li>
-          ))}
-        </ol>
-
-        <div className="volt__foot sd-rise">
-          <p className="volt__closing">{volt.closing}</p>
-          <a href="#agendar" className="btn btn--ghost">Agendar</a>
-        </div>
+          </div>
+        ))}
       </div>
     </section>
   );

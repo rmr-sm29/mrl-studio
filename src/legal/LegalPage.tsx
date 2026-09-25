@@ -15,7 +15,7 @@ const HOLDER = {
 const email = site.email || '[email de contacto]';
 const updated = '24 de septiembre de 2026';
 
-const PROVIDER = site.booking.provider === 'tidycal' ? 'TidyCal' : 'Cal.com';
+const PROVIDER = 'Cal.com';
 
 const pages: Record<'aviso-legal' | 'privacidad' | 'cookies', { title: string; body: ReactNode }> = {
   'aviso-legal': {

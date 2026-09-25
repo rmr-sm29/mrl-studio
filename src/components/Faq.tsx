@@ -1,31 +1,27 @@
-import { useId, useState } from 'react';
+import { useId, useRef, useState } from 'react';
 import { faq } from '../content';
+import { useInViewOnce } from '../hooks';
 
 export function Faq() {
-  const [open, setOpen] = useState<Set<number>>(() => new Set([0]));
+  // Cierre automático: solo una abierta a la vez (la primera, al cargar).
+  const [open, setOpen] = useState<number | null>(0);
   const uid = useId();
-
-  const toggle = (i: number) =>
-    setOpen((prev) => {
-      const next = new Set(prev);
-      if (next.has(i)) next.delete(i);
-      else next.add(i);
-      return next;
-    });
+  const ref = useRef<HTMLDivElement>(null);
+  const seen = useInViewOnce(ref, '0px 0px -10% 0px');
 
   return (
     <section id="faq" className="section faq" aria-labelledby="faq-title">
-      <div className="container faq__layout">
-        <h2 id="faq-title" className="section__title sd-rise">Preguntas frecuentes</h2>
-        <div className="faq__list sd-rise">
+      <div className="faq__inner">
+        <h2 id="faq-title" className="section__title faq__title">Preguntas frecuentes</h2>
+        <div ref={ref} className={`faq__list ${seen ? 'is-in' : ''}`}>
           {faq.map((item, i) => {
-            const isOpen = open.has(i);
+            const isOpen = open === i;
             const btn = `${uid}-q${i}`;
             const panel = `${uid}-a${i}`;
             return (
-              <div key={item.q} className={`faq__item ${isOpen ? 'is-open' : ''}`}>
+              <div key={item.q} className={`faq__item ${isOpen ? 'is-open' : ''}`} style={{ '--d': `${i * 40}ms` } as React.CSSProperties}>
                 <h3 className="faq__q">
-                  <button id={btn} type="button" aria-expanded={isOpen} aria-controls={panel} onClick={() => toggle(i)}>
+                  <button id={btn} type="button" aria-expanded={isOpen} aria-controls={panel} onClick={() => setOpen(isOpen ? null : i)}>
                     <span>{item.q}</span>
                     <span className="faq__icon" aria-hidden="true" />
                   </button>

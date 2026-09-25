@@ -1,88 +1,76 @@
-// Todo el copy de la landing, tal cual está cerrado en el brief.
-// Reglas de contenido (brief §18): cero resultados de cliente, solo cifras de proceso/mercado verificables,
-// máximo tres acentos ámbar por pantalla y un único CTA (agendar).
+// Todo el copy de la landing (brief v2).
+// Reglas (brief §17): cero resultados de cliente, solo cifras de proceso/mercado verificables, máximo tres acentos
+// ámbar por pantalla, un único CTA (agendar), el flash solo en el hero y los plazos solo en VOLT.
 
 export const site = {
   instagram: 'arnaumrl.ai',
   instagramUrl: 'https://www.instagram.com/arnaumrl.ai/',
   email: import.meta.env.VITE_CONTACT_EMAIL ?? '',
   booking: {
-    provider: (import.meta.env.VITE_BOOKING_PROVIDER ?? 'cal') as 'cal' | 'tidycal',
+    // Cal.com, embebido (brief §12). Ruta del evento, p. ej. "usuario/15min".
     path: import.meta.env.VITE_BOOKING_PATH ?? '',
   },
 };
 
 export const nav = [
   { label: 'Trabajo', href: '#trabajo' },
+  // Además de navegar, permite saltarse la secuencia del portfolio de un clic.
   { label: 'Método', href: '#metodo' },
   { label: 'FAQ', href: '#faq' },
 ];
 
 export const hero = {
-  kicker: 'Vídeo, UGC y static ads generados con IA',
-  sub: 'Vídeo cinematográfico, UGC y static ads.',
-  subRest: ' Todo lo que ves en esta página está hecho con mi metodología VOLT.',
-  proof: ['Sin castings', 'Sin rodajes', 'Licencia comercial completa'],
-  proofMobile: ['Sin castings ni rodajes', 'Licencia comercial completa'],
-  // Versión en vídeo del hero (bucle 4-5 s). Pendiente de generar: poner a true cuando existan
-  // /media/hero-loop.mp4 y /media/hero-loop.webm.
-  hasLoop: false,
+  hook: 'Cero rodajes, cero esperas',
+  line2: 'Consigue anuncios de alta calidad y UGC cada mes, sin rodajes, sin esperas, sin apostarlo todo a una pieza',
+  proof: 'Sin castings · Sin rodajes · Licencia comercial completa',
 };
 
-export const capabilities = [
-  'Spot cinematográfico',
-  'UGC',
-  'Imagen de producto',
-  'Packaging',
-  'Avatares IA',
-  'Voz en castellano',
-  'Color grade',
-  'Formatos para Meta y TikTok',
-];
+export const marquee = {
+  top: ['Spot cinematográfico', 'UGC', 'Imagen de producto', 'Packaging'],
+  bottom: ['Avatares IA', 'Voz en castellano', 'Color grade', 'Formatos para Meta y TikTok'],
+  thumbsTop: ['cine-1', 'fragancia', 'ugc1', 'chocolate'],
+  thumbsBottom: ['ugc2', 'cine-3', 'proteina', 'cine-2'],
+};
 
 export const portfolio = {
-  intro:
-    'una marca que creé desde cero para enseñar el proceso completo: producto, packaging, spot, UGC y estáticos. Si puedo montar una marca entera, puedo montar la tuya.',
-  cinematic: {
-    id: 'cine',
-    title: 'Spot cinematográfico · Cosmética · 10 s',
-    desc: 'Personaje consistente en exterior con luz natural de atardecer y producto en mano.',
+  intro: {
+    heading: 'Una marca entera, hecha desde cero.',
+    chain: ['Producto', 'Packaging', 'Spot', 'UGC', 'Estáticos'],
+    body: 'Si puedo montar una marca entera, puedo montar la tuya.',
   },
-  ugc: [
-    {
-      id: 'ugc1',
-      title: 'UGC selfie · Solar facial · 10 s',
-      desc: 'Cámara frontal en movimiento, voz sincronizada en castellano, interior sin iluminación añadida.',
-    },
-    {
-      id: 'ugc2',
-      title: 'UGC · Auriculares · 10 s',
-      // Pendiente de redactar tras el recorte final de 0910.mov (brief §17, decisión 3).
-      desc: '',
-    },
-  ],
-  products: [
-    {
-      id: 'fragancia',
-      title: 'Imagen de producto · Fragancia',
-      desc: 'Producto en contacto con el rostro, refracción del líquido sobre la piel y wordmark legible en el cristal.',
-    },
-    {
-      id: 'chocolate',
-      title: 'Imagen de producto · Alimentación',
-      desc: 'Cenital con packaging abierto, troquelado del producto y textura de migas como prueba de realismo.',
-    },
-    {
-      id: 'proteina',
-      title: 'Imagen de producto · Nutrición deportiva',
-      desc: 'Figura sobre fondo limpio, piel con sudor y packaging mate sin reflejos parásitos.',
-    },
-  ],
+  cinematic: {
+    title: 'Cinematográfico',
+    video: { id: 'cine', meta: '9:16 · Cosmética · 10 s', tech: 'Personaje consistente en exterior con luz natural de atardecer y producto en mano.' },
+    stills: [
+      { id: 'cine-still-01-detalle', label: 'Detalle' },
+      { id: 'cine-still-02-general', label: 'General' },
+      { id: 'cine-still-03-producto', label: 'Producto' },
+    ],
+  },
+  ugc: {
+    title: 'UGC',
+    videos: [
+      { id: 'ugc1', meta: '9:16 · Solar facial · 10 s' },
+      // Ficha pendiente de confirmar tras el recorte final de 0910.mov (brief §18, decisión 2).
+      { id: 'ugc2', meta: '9:16 · Audio · 10 s' },
+    ],
+    avatarLabel: 'Avatares UGC',
+    avatarDesc: 'Mujer, 25-30. Melena castaña, registro cercano. Es el mismo avatar del segundo clip.',
+    reach: 'Los avatares se reutilizan en cualquier formato: UGC, spot cinematográfico o imagen de producto.',
+  },
+  products: {
+    title: 'Imagen de producto',
+    items: [
+      { id: 'fragancia', meta: '3:4 · Fragancia', tech: 'Producto en contacto con el rostro, refracción del líquido sobre la piel y wordmark legible en el cristal.' },
+      { id: 'chocolate', meta: '3:4 · Alimentación', tech: 'Cenital con packaging abierto, troquelado del producto y textura de migas como prueba de realismo.' },
+      { id: 'proteina', meta: '3:4 · Nutrición deportiva', tech: 'Figura sobre fondo limpio, piel con sudor y packaging mate sin reflejos parásitos.' },
+    ],
+  },
 };
 
 export const problem = {
   heading: 'Producir vídeo publicitario cuesta más de lo que parece',
-  // Verificar el rango de tarifa UGC en España antes de publicar (brief §17, decisión 4).
+  // Verificar el rango de tarifa UGC en España antes de publicar (brief §18, decisión 3).
   stats: [
     { from: 400, to: 800, suffix: ' €', text: 'Lo que cobra un creador UGC por una sola pieza. Sin contar el briefing, los retrasos ni las repeticiones.' },
     { from: 2, to: 3, suffix: ' semanas', text: 'Lo que tarda una producción tradicional desde el brief hasta la entrega. Si hay casting, más.' },
@@ -95,7 +83,6 @@ export type VoltKey = 'V' | 'O' | 'L' | 'T';
 
 export const volt = {
   heading: 'Metodología VOLT',
-  lede: 'Cuatro fases, siete días, entrega final y cerrada.',
   steps: [
     {
       key: 'V' as VoltKey,
@@ -137,14 +124,6 @@ export const volt = {
     { day: 'Día 7', step: 'T · Test' },
   ],
   closing: 'Solo necesito dos cosas de ti: el brief del día 1 y el visto bueno del día 3. El resto es mío.',
-  // Visual VOLT (cenital de mesa de trabajo). Pendiente de generar: poner a true cuando existan
-  // /media/volt.mp4|webm (16:9) y /media/volt-4x5.mp4|webm (móvil).
-  hasVideo: false,
-  scriptLines: [
-    'ESC. 1 — EXT. CARRETERA COSTERA. ATARDECER.',
-    'Ella se mira en el espejo de mano.',
-    'GANCHO: «Nadie ha rodado esto.»',
-  ],
 };
 
 export const why = {

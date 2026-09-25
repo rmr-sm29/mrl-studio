@@ -1,5 +1,3 @@
-import { useEffect } from 'react';
-import { initScrollFx } from './scrollFx';
 import { Header } from './components/Header';
 import { Hero } from './components/Hero';
 import { Marquee } from './components/Marquee';
@@ -13,8 +11,6 @@ import { Footer } from './components/Footer';
 import { CookieBanner } from './components/CookieBanner';
 
 export function App() {
-  useEffect(() => initScrollFx(), []);
-
   return (
     <>
       <a className="skip" href="#trabajo">Saltar al contenido</a>

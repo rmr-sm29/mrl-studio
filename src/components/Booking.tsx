@@ -8,8 +8,6 @@ declare global {
   }
 }
 
-const PROVIDER_NAME = { cal: 'Cal.com', tidycal: 'TidyCal' } as const;
-
 // Snippet oficial de embed inline de Cal.com, cargado bajo demanda.
 function loadCal() {
   if (window.Cal) return;
@@ -36,35 +34,29 @@ function loadCal() {
 export function Booking() {
   const consent = useConsent();
   const ref = useRef<HTMLDivElement>(null);
-  const { provider, path } = site.booking;
+  const { path } = site.booking;
   const ready = consent === 'accepted' && !!path;
 
   useEffect(() => {
     if (!ready || !ref.current) return;
-    if (provider === 'cal') {
-      loadCal();
-      const Cal = window.Cal!;
-      Cal('init', 'mrl', { origin: 'https://app.cal.com' });
-      Cal.ns.mrl('inline', { elementOrSelector: '#cal-inline', calLink: path, config: { layout: 'month_view', theme: 'dark' } });
-      Cal.ns.mrl('ui', {
-        theme: 'dark',
-        hideEventTypeDetails: false,
-        layout: 'month_view',
-        cssVarsPerTheme: { dark: { 'cal-brand': '#F4F1EA' } },
-      });
-    } else {
-      const s = document.createElement('script');
-      s.src = 'https://asset-tidycal.com/js/embed.js';
-      s.async = true;
-      document.body.appendChild(s);
-    }
-  }, [ready, provider, path]);
+    loadCal();
+    const Cal = window.Cal!;
+    Cal('init', 'mrl', { origin: 'https://app.cal.com' });
+    // Tema claro: el cierre va sobre hueso (brief v2 §12). Marca en grafito para no gastar acentos ámbar.
+    Cal.ns.mrl('inline', { elementOrSelector: '#cal-inline', calLink: path, config: { layout: 'month_view', theme: 'light' } });
+    Cal.ns.mrl('ui', {
+      theme: 'light',
+      hideEventTypeDetails: false,
+      layout: 'month_view',
+      cssVarsPerTheme: { light: { 'cal-brand': '#0C0D0C' } },
+    });
+  }, [ready, path]);
 
   if (!path) {
     return (
       <div className="booking booking--notice sd-rise" role="note">
         <p>Calendario pendiente de configurar.</p>
-        <p className="muted">Define <code>VITE_BOOKING_PROVIDER</code> y <code>VITE_BOOKING_PATH</code> en Vercel.</p>
+        <p className="muted">Define <code>VITE_BOOKING_PATH</code> (ruta del evento de Cal.com) en Vercel.</p>
       </div>
     );
   }
@@ -73,7 +65,7 @@ export function Booking() {
     return (
       <div className="booking booking--notice sd-rise">
         <p>
-          El calendario lo sirve {PROVIDER_NAME[provider]}, que usa sus propias cookies. Para mostrarlo aquí necesitamos tu
+          El calendario lo sirve Cal.com, que usa sus propias cookies. Para mostrarlo aquí necesitamos tu
           consentimiento.
         </p>
         <button type="button" className="btn btn--primary" onClick={() => setConsent('accepted')}>
@@ -88,7 +80,7 @@ export function Booking() {
 
   return (
     <div className="booking sd-rise" ref={ref}>
-      {provider === 'cal' ? <div id="cal-inline" className="booking__frame" /> : <div className="tidycal-embed booking__frame" data-path={path} />}
+      <div id="cal-inline" className="booking__frame" />
     </div>
   );
 }
