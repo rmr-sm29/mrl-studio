@@ -145,7 +145,7 @@ export async function sendCancelled(b: MailBooking, siteUrl: string) {
 }
 
 /** Aviso interno al administrador. */
-export async function notifyAdmin(kind: 'nueva' | 'cambiada' | 'cancelada', b: MailBooking) {
+export async function notifyAdmin(kind: 'nueva' | 'cambiada' | 'cancelada', b: MailBooking, origin = '') {
   const to = env('ADMIN_EMAIL');
   if (!to) return;
   const rows: [string, string | null | undefined][] = [
@@ -164,6 +164,14 @@ export async function notifyAdmin(kind: 'nueva' | 'cambiada' | 'cancelada', b: M
     to,
     replyTo: b.email,
     subject: `Reserva ${kind}: ${b.name} · ${formatLong(b.start, RULES.timezone)}`,
-    html: layout(`Reserva ${kind}`, `<table style="font-size:15px;border-collapse:collapse">${table}</table>`, false),
+    html: layout(
+      `Reserva ${kind}`,
+      `<table style="font-size:15px;border-collapse:collapse">${table}</table>` +
+        (kind === 'cancelada'
+          ? p(origin ? `<span style="color:#5f5d57">${esc(origin)}</span>` : '')
+          : btn(b.manageUrl, 'Cambiar de hora o cancelar') +
+            p('<span style="color:#5f5d57;font-size:14px">Es el mismo enlace que tiene el cliente: si cancelas, se le avisa por email y Google le retira la invitación. También puedes borrar el evento en Google Calendar; la reserva se anula en la revisión diaria.</span>')),
+      false,
+    ),
   });
 }

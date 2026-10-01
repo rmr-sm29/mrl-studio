@@ -99,6 +99,17 @@ export async function moveEvent(eventId: string, start: Date, end: Date) {
   return { meetUrl: meetUrl(event) };
 }
 
+/** ¿Sigue vivo el evento? false si se borró o canceló desde Google Calendar. */
+export async function eventExists(eventId: string) {
+  try {
+    const e = await call<{ status?: string }>(`/calendars/${cal()}/events/${encodeURIComponent(eventId)}?fields=status`);
+    return e.status !== 'cancelled';
+  } catch (e) {
+    if (/ 410:| 404:/.test((e as Error).message)) return false;
+    throw e;
+  }
+}
+
 /** Cancela el evento; Google avisa a la persona invitada. */
 export async function cancelEvent(eventId: string) {
   await call(`/calendars/${cal()}/events/${encodeURIComponent(eventId)}?sendUpdates=all`, { method: 'DELETE' }).catch(
