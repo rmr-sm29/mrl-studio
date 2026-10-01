@@ -1,17 +1,20 @@
 /* ───────────────────────── Tokens ───────────────────────── */
 :root {
-  --graphite: #0c0d0c;
-  --graphite-2: #1a1b19;
-  --bone: #f4f1ea;
+  /* Parche 2 · O: paleta derivada de las imágenes finales (pared #58443D, suelo #8E6D5E, luz #FBF3E9) */
+  --graphite: #100c0a; /* grafito profundo · sombra del traje */
+  --veil: #1e1712; /* marrón velo · pared oscurecida */
+  --graphite-2: #2a211b; /* superficie elevada · pared */
+  --bone: #f4f1ea; /* hueso · coincide con la luz del paraguas */
   --bone-2: #dfdad1;
-  --beige: #e0d5c9; /* beige de transición: estado 1 del hero y cierre (brief v2) */
-  --amber: #e8a24a;
-  --amber-on-light: #a9641a;
-  --muted: #8c8a83;
+  --sand: #e4d2b9; /* arena cálida · fondo del reloj aclarado */
+  --amber: #e8a24a; /* ámbar de marca: no se toca */
+  --amber-on-light: #a9641a; /* sobre claro, solo texto grande (3,14:1 sobre arena) */
+  --amber-on-light-small: #8a4a0c; /* sobre claro, texto pequeño (4,64:1 sobre arena) */
+  --muted: #9a8c7e; /* texto atenuado sobre oscuro · suelo */
   --muted-on-light: #5f5d57;
   --line: rgba(244, 241, 234, 0.1);
   --line-strong: rgba(244, 241, 234, 0.28);
-  --line-dark: rgba(12, 13, 12, 0.14);
+  --line-dark: rgba(16, 12, 10, 0.14);
 
   --font: 'Inter Tight Variable', 'Inter Tight', system-ui, -apple-system, 'Segoe UI', sans-serif;
   --mono: 'JetBrains Mono Variable', 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
@@ -20,8 +23,8 @@
   --header-h: 64px;
   --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
   --ease-out: cubic-bezier(0.22, 0.8, 0.26, 1);
-  /* Recorrido de scroll por estado en las secuencias ancladas. Corto a propósito: cada estado responde enseguida a la rueda. */
-  --step: 70dvh;
+  /* Recorrido de scroll por estado en las secuencias ancladas: suficiente para que cada bloque se lea sin saltos. */
+  --step: 100dvh;
 
   color-scheme: dark;
 }
@@ -198,54 +201,18 @@ code { font-family: var(--mono); font-size: 0.85em; }
 .header__nav a:hover { opacity: 1; }
 @media (min-width: 768px) { .header__nav { display: flex; } }
 .header.is-solid { background: var(--graphite); box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35); }
-/* Estado 1 del hero (beige liso): tinta grafito y punto negro, según la regla del wordmark. */
-html[data-hero='light'] .header:not(.is-solid) { color: var(--graphite); }
-html[data-hero='light'] .header:not(.is-solid) .wordmark { --dot: var(--graphite); }
-html[data-hero='light'] .header:not(.is-solid) .btn--primary { background: var(--graphite); color: var(--bone); }
 /* Sobre la imagen, el nav cae encima del paraguas encendido: sombra suave solo en el texto, sin tapar la imagen. */
 html[data-hero='image'] .header:not(.is-solid) .header__nav a,
 html[data-hero='image'] .header:not(.is-solid) .wordmark { text-shadow: 0 0 14px rgba(12, 13, 12, 0.75), 0 1px 3px rgba(12, 13, 12, 0.6); }
 html[data-hero='image'] .header:not(.is-solid) .header__nav a { opacity: 1; }
 /* En la pantalla VOLT solo las cuatro iniciales llevan ámbar. */
-html[data-accent-lock] .header .wordmark { --dot: var(--bone); }
+/* El punto del wordmark mantiene siempre su color, también sobre VOLT (decisión del cliente). */
 
 /* ───────────────────────── Hero (secuencia anclada, 3 estados) ───────────────────────── */
-.hero { position: relative; height: calc(100dvh + 2 * var(--step)); background: var(--beige); }
-.hero--static { height: 100dvh; }
-.hero__stage {
-  position: sticky;
-  top: 0;
-  height: 100dvh;
-  overflow: hidden;
-  background: var(--beige);
-}
-.hero__media { position: absolute; inset: 0; background: var(--beige); }
-.hero__media picture, .hero__img { width: 100%; height: 100%; }
-/* Escritorio: a sangre y sin scrim (tercio izquierdo con luminancia media ~76: el hueso contrasta ≥ 4,9:1). */
-.hero__img { object-fit: cover; object-position: 68% 50%; }
-/* Brief v3 · A: en el estado 1 la imagen ya está, muy atenuada y desenfocada sobre el beige; el flash la revela.
-   El desenfoque importa tanto como la opacidad: sin él se adivina la figura. Contraste del texto grafito ≥ 9,5:1 incluso
-   en el peor caso (imagen negra al 14 %). */
-.hero__img {
-  opacity: 0.14;
-  filter: blur(12px) saturate(0.35) brightness(1.1);
-  transition: opacity 120ms, filter 120ms;
-}
-.hero--revelado .hero__img { opacity: 1; filter: none; }
-/* Brief v3 · H: grano fino solo sobre la imagen del hero (el reescalado alisó la piel). No aplicar a los vídeos. */
-.hero__media::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  pointer-events: none;
-  opacity: 0.07;
-  mix-blend-mode: overlay;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23n)'/%3E%3C/svg%3E");
-  background-size: 220px 220px;
-}
-@media (min-resolution: 2dppx) { .hero__media::after { background-size: 300px 300px; } }
-.hero__scrim { position: absolute; inset: 0; pointer-events: none; }
+/* Parche de capas visuales §3: la capa de fondo es la órbita de cámara (orbit-scrub.css). La altura del recorrido la
+   lleva .hero-orbit-driver y el anclaje, la sección .orbit (sticky, 100svh). Aquí solo queda lo propio del hero. */
+.orbit.hero-orbit { background: var(--veil); } /* parche 2 · Q: velo marrón bajo la imagen en el estado 1 */
+/* La imagen está presente y nítida desde el principio: sin velo difuminado ni flash (decisión del cliente). */
 
 .hero__copy {
   position: absolute;
@@ -256,7 +223,7 @@ html[data-accent-lock] .header .wordmark { --dot: var(--bone); }
   width: min(46vw, 660px);
   color: var(--bone);
 }
-.hero[data-state='1'] .hero__copy { color: var(--graphite); }
+.hero[data-state='1'] .hero__copy { color: var(--bone); } /* parche 2 · Q: hueso sobre el velo */
 
 .hero__lines { display: grid; }
 .hero__lines > *, .hero__h1 > * { grid-area: 1 / 1; }
@@ -269,9 +236,19 @@ html[data-accent-lock] .header .wordmark { --dot: var(--bone); }
   font-weight: 650;
   letter-spacing: -0.048em;
   text-wrap: balance;
+  opacity: 0;
   visibility: hidden;
+  transform: translateY(16px);
+  transition: opacity 0.34s var(--ease), transform 0.42s var(--ease), visibility 0s linear 0.42s;
 }
-.hero[data-state='1'] .hero__hook { visibility: visible; }
+/* Sin flash, el paso 1 → 2 es un fundido corto con desplazamiento, igual que el 2 → 3 */
+.hero[data-state='1'] .hero__hook {
+  opacity: 1;
+  visibility: visible;
+  transform: none;
+  transition: opacity 0.34s var(--ease) 0.06s, transform 0.42s var(--ease) 0.06s, visibility 0s;
+}
+.hero:not([data-state='1']) .hero__hook { transform: translateY(-16px); }
 
 .hero__line {
   align-self: end;
@@ -307,7 +284,19 @@ html[data-accent-lock] .header .wordmark { --dot: var(--bone); }
 .hero__line .accent { color: var(--amber); text-shadow: 0 0 24px rgba(12, 13, 12, 0.6), 0 1px 3px rgba(12, 13, 12, 0.45); }
 
 /* Firma bajo cada frase */
-.hero__sig { margin-top: 18px; font-size: 0.82rem; font-weight: 650; letter-spacing: -0.01em; opacity: 0.3; }
+.hero__sig {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 18px;
+  font-size: 0.82rem;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  opacity: 0.3;
+}
+/* Logo del header replicado en la firma, en el mismo gris monocromático: el punto también pierde el ámbar */
+.hero__sig .wordmark { --dot: currentColor; }
+.hero__sig .wordmark__mrl { font-size: 1.3rem; }
 .hero[data-state='1'] .hero__sig { opacity: 0.4; }
 
 .hero__cta {
@@ -326,25 +315,8 @@ html[data-accent-lock] .header .wordmark { --dot: var(--bone); }
 .hero__actions { display: flex; flex-wrap: wrap; gap: 12px; }
 .hero__proof { margin-top: 18px; font-size: 0.86rem; color: var(--bone-2); }
 
-/* Flash: sobreexposición a blanco (~120 ms de pico). El cambio de estado ocurre dentro del pico. */
-.hero__flash {
-  position: absolute;
-  inset: 0;
-  z-index: 5;
-  background: #fff;
-  pointer-events: none;
-  opacity: 0;
-  animation: flash-white linear forwards;
-}
-@keyframes flash-white {
-  0% { opacity: 0; }
-  11% { opacity: 1; }
-  28% { opacity: 1; }
-  100% { opacity: 0; }
-}
-.hero.is-flashing .hero__line,
-.hero.is-flashing .hero__cta { transition: none !important; }
 /* Brief v3 · B: con estados en cola, la transición baja a 180 ms */
+.hero.is-fast .hero__hook,
 .hero.is-fast .hero__line,
 .hero.is-fast .hero__cta { transition-duration: 0.18s !important; transition-delay: 0s !important; }
 
@@ -356,7 +328,7 @@ html[data-accent-lock] .header .wordmark { --dot: var(--bone); }
   z-index: 3;
   width: 1px;
   height: 56px;
-  background: linear-gradient(to bottom, rgba(12, 13, 12, 0), rgba(12, 13, 12, 0.6));
+  background: linear-gradient(to bottom, rgba(244, 241, 234, 0), rgba(244, 241, 234, 0.6));
   opacity: 0;
   transition: opacity 0.3s;
 }
@@ -364,13 +336,8 @@ html[data-accent-lock] .header .wordmark { --dot: var(--bone); }
 @keyframes hint-in { to { opacity: 1; } }
 @keyframes hint { 0% { transform: scaleY(0); } 50%, 100% { transform: scaleY(1); } }
 
-/* Móvil (y tablet en vertical): recorte 9:16 a sangre, texto anclado abajo sobre el suelo, con scrim desde abajo. */
+/* Móvil (y tablet en vertical): texto anclado abajo sobre el suelo (el velo inferior lo pone .orbit__scrim). */
 @media (max-width: 767px), (max-width: 1024px) and (orientation: portrait) {
-  .hero__img { object-position: 50% 42%; }
-  .hero:not([data-state='1']) .hero__scrim {
-    /* La zona del paraguas queda limpia: es donde se lee el flash. */
-    background: linear-gradient(to top, rgba(12, 13, 12, 0.9) 0%, rgba(12, 13, 12, 0.55) 22%, rgba(12, 13, 12, 0) 45%);
-  }
   .hero__copy {
     left: var(--gutter);
     right: var(--gutter);
@@ -424,7 +391,7 @@ html[data-accent-lock] .header .wordmark { --dot: var(--bone); }
   50% { opacity: 1; transform: scale(1.1); }
 }
 
-/* ───────────────────────── Secuencias ancladas (portfolio y VOLT) ───────────────────────── */
+/* ───────────────────────── Secuencias ancladas (VOLT) ───────────────────────── */
 .seq { position: relative; }
 .seq.is-pinned { height: calc(100dvh + (var(--states) - 1) * var(--step)); }
 .seq.is-pinned .seq__stage { position: sticky; top: 0; height: 100dvh; overflow: hidden; }
@@ -454,47 +421,11 @@ html[data-accent-lock] .header .wordmark { --dot: var(--bone); }
 .seq.is-stacked .seq__state { padding-block: clamp(64px, 10vw, 112px); }
 .seq.is-stacked .seq__state + .seq__state { border-top: 1px solid var(--line); }
 
-/* Indicador de progreso: numeral grande al 15 %, detrás del contenido */
-.seq__numeral {
-  position: absolute;
-  right: var(--gutter);
-  bottom: -0.12em;
-  font-size: min(34vw, 46dvh);
-  line-height: 1;
-  font-weight: 700;
-  letter-spacing: -0.06em;
-  color: var(--bone);
-  opacity: 0.15;
-  pointer-events: none;
-  display: grid;
-}
-.seq__numeral span { grid-area: 1 / 1; opacity: 0; transform: translateY(8%); transition: opacity 0.4s var(--ease), transform 0.6s var(--ease); }
-.seq__numeral span[data-rel='active'] { opacity: 1; transform: none; }
-.seq__numeral span[data-rel='past'] { transform: translateY(-8%); }
-.seq.is-stacked .seq__numeral { display: none; }
+/* ───────────────────────── Portfolio (parche 3: scroll continuo) ───────────────────────── */
+.portfolio { background: var(--graphite); padding-bottom: clamp(24px, 4vw, 48px); }
 
-/* ───────────────────────── Portfolio ───────────────────────── */
-.portfolio { background: var(--graphite); }
-/* Brief v3 · C: los títulos de bloque son titulares, no etiquetas */
-.portfolio-titulo {
-  font-size: clamp(2.5rem, 5vw, 4rem);
-  font-weight: 600;
-  line-height: 1;
-  letter-spacing: -0.035em;
-  color: #f4f1ea;
-  margin-bottom: clamp(18px, 3dvh, 28px);
-}
-/* Brief v3 · D: título del avatar, por debajo de "UGC" pero legible (anula las versalitas atenuadas del v2) */
-.avatar-titulo {
-  font-size: clamp(1.25rem, 2vw, 1.75rem);
-  font-weight: 550;
-  line-height: 1.1;
-  letter-spacing: -0.02em;
-  color: #f4f1ea;
-  margin-bottom: 14px;
-}
-
-/* 00 · Entrada */
+/* Entrada */
+.pf-intro { padding-top: clamp(104px, 14vw, 184px); }
 .pf-intro__title {
   margin-top: 18px;
   max-width: 14ch;
@@ -504,19 +435,81 @@ html[data-accent-lock] .header .wordmark { --dot: var(--bone); }
   letter-spacing: -0.045em;
   text-wrap: balance;
 }
-.pf-chain { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 0; margin-top: clamp(28px, 4dvh, 44px); }
-.pf-chain li {
+.pf-intro__body { margin-top: clamp(20px, 3vw, 32px); max-width: 48ch; font-size: 1.08rem; color: var(--bone-2); }
+
+/* Barra de accesos rápidos: pegajosa dentro de la sección (sale con ella). En móvil, scroll horizontal. */
+.portfolio-bg > .pf-nav.pf-nav {
+  position: sticky;
+  top: var(--header-h);
+  z-index: 5;
+  margin-top: clamp(48px, 7vw, 88px);
+  /* Transparente: solo se ven las píldoras, cada una con su propio fondo para leerse sobre las piezas */
+}
+.pf-nav__list {
+  display: flex;
+  gap: 8px;
+  max-width: 1360px;
+  margin-inline: auto;
+  padding: 10px var(--gutter);
+  overflow-x: auto;
+  scrollbar-width: none;
+  overscroll-behavior-x: contain;
+}
+.pf-nav__list::-webkit-scrollbar { display: none; }
+.pf-nav__link {
   display: inline-flex;
   align-items: center;
-  opacity: 0;
-  transform: translateX(-12px);
-  transition: opacity 0.32s var(--ease), transform 0.4s var(--ease);
-  transition-delay: calc(var(--i) * 110ms + 220ms);
+  min-height: 40px;
+  padding: 0 16px;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  white-space: nowrap;
+  color: var(--bone-2);
+  background: rgba(16, 12, 10, 0.62);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: background-color 0.25s, color 0.25s, border-color 0.25s;
 }
-[data-rel='active'] .pf-chain li { opacity: 1; transform: none; }
-.pf-chain__tag { padding: 8px 16px; border: 1px solid var(--line-strong); border-radius: 999px; font-size: 0.95rem; font-weight: 500; }
-.pf-chain__arrow { margin-inline: 10px; color: var(--muted); }
-.pf-intro__body { margin-top: clamp(24px, 3.5dvh, 36px); max-width: 44ch; font-size: 1.08rem; color: var(--bone-2); }
+.pf-nav__link:hover { border-color: var(--bone); color: var(--bone); }
+.pf-nav__link[aria-current='true'] { background: var(--bone); border-color: var(--bone); color: var(--graphite); }
+
+/* Bloques */
+.pf-block {
+  padding-top: clamp(72px, 10vw, 140px);
+  scroll-margin-top: calc(var(--header-h) + 62px);
+}
+.portfolio-titulo {
+  font-size: clamp(2.5rem, 5vw, 4rem);
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.035em;
+  color: #f4f1ea;
+  margin-bottom: clamp(28px, 4vw, 48px);
+}
+.pf-block__n {
+  display: block;
+  margin-bottom: 14px;
+  font-family: var(--mono);
+  font-size: 0.78rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  color: var(--muted);
+}
+/* Línea de argumento: debajo del trabajo, cuerpo pequeño y atenuado */
+.pf-line { margin-top: clamp(28px, 4vw, 44px); max-width: 58ch; font-size: 0.98rem; color: var(--muted); }
+.pf-line a { color: var(--bone-2); text-decoration: underline; text-underline-offset: 3px; }
+.pf-line a:hover { color: var(--bone); }
+
+/* Revelado escalonado al entrar en pantalla */
+.pf-reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.6s var(--ease) calc(var(--i, 0) * 90ms), transform 0.8s var(--ease) calc(var(--i, 0) * 90ms);
+}
+.pf-block.is-in .pf-reveal { opacity: 1; transform: none; }
+@media (prefers-reduced-motion: reduce) { .pf-reveal { opacity: 1; transform: none; } }
 
 /* Piezas */
 .piece__frame { position: relative; overflow: hidden; border-radius: 4px; background: var(--graphite-2); }
@@ -525,7 +518,7 @@ html[data-accent-lock] .header .wordmark { --dot: var(--bone); }
 .piece__frame video,
 .piece__frame img { width: 100%; height: 100%; object-fit: cover; }
 
-/* Ficha: formato siempre visible; línea técnica en hover (escritorio) o tap (móvil) */
+/* Ficha: píldoras siempre visibles; línea técnica en hover (escritorio) o tap (móvil) */
 .ficha { margin-top: 14px; }
 .ficha__meta {
   display: inline-flex;
@@ -535,12 +528,20 @@ html[data-accent-lock] .header .wordmark { --dot: var(--bone); }
   padding: 0;
   border: 0;
   background: none;
-  font-family: var(--mono);
-  font-size: 0.78rem;
-  letter-spacing: 0.04em;
   color: var(--bone-2);
   cursor: default;
   text-align: left;
+}
+.ficha__pills { display: inline-flex; flex-wrap: wrap; gap: 6px; }
+.ficha__pill {
+  padding: 4px 10px;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.03em;
+  color: var(--bone-2);
+  white-space: nowrap;
 }
 .ficha--tech .ficha__meta { cursor: pointer; }
 .ficha__more { position: relative; width: 9px; height: 9px; flex: 0 0 9px; opacity: 0.6; }
@@ -550,39 +551,20 @@ html[data-accent-lock] .header .wordmark { --dot: var(--bone); }
 .ficha__tech {
   display: grid;
   grid-template-rows: 0fr;
+  min-height: 0;
   max-width: 44ch;
-  font-size: 0.92rem;
+  font-size: 0.9rem;
   color: var(--muted);
   opacity: 0;
   overflow: hidden;
   transition: grid-template-rows 0.25s var(--ease-out), opacity 0.2s, margin 0.25s;
 }
 .ficha.is-open .ficha__tech,
-.ficha:focus-within .ficha__tech { grid-template-rows: 1fr; opacity: 1; margin-top: 4px; }
+.ficha:focus-within .ficha__tech { grid-template-rows: 1fr; opacity: 1; margin-top: 6px; }
 @media (hover: hover) {
-  .piece:hover .ficha__tech,
-  .pf-cine__grid:hover .ficha__tech { grid-template-rows: 1fr; opacity: 1; margin-top: 4px; }
+  .piece:hover .ficha__tech { grid-template-rows: 1fr; opacity: 1; margin-top: 6px; }
 }
-.ficha__tech { min-height: 0; }
 
-.piece__sound {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  z-index: 2;
-  width: 44px;
-  height: 44px;
-  display: grid;
-  place-items: center;
-  border: 0;
-  border-radius: 50%;
-  background: rgba(12, 13, 12, 0.55);
-  color: var(--bone);
-  cursor: pointer;
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-}
-.piece__sound[aria-pressed='true'] { background: var(--bone); color: var(--graphite); }
 .piece__play { position: absolute; inset: 0; z-index: 1; display: grid; place-items: center; border: 0; background: transparent; cursor: pointer; }
 .piece__play > span {
   width: 72px; height: 72px; display: grid; place-items: center; border-radius: 50%;
@@ -593,58 +575,54 @@ html[data-accent-lock] .header .wordmark { --dot: var(--bone); }
 .piece__play:focus-visible { outline-offset: -4px; }
 .piece__play.is-playing:focus-visible > span { opacity: 1; }
 
-/* 01 · Cinematográfico */
-.pf-cine__grid { display: grid; gap: 32px; }
-.pf-cine__side .ficha { margin-top: 0; }
-.pf-stills { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 24px; }
-.pf-still { width: 100%; aspect-ratio: 9 / 16; height: auto; object-fit: cover; border-radius: 3px; }
-.pf-stills__label { display: block; margin-top: 8px; font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
-
-/* 02 · UGC */
-.pf-ugc__grid { display: grid; gap: 32px; }
-.pf-ugc__avatar .piece__frame { max-width: 300px; }
-.pf-ugc__videos { display: grid; gap: 24px; }
-.pf-ugc__desc { margin-top: 14px; max-width: 36ch; color: var(--bone-2); font-size: 0.98rem; }
-.pf-ugc__reach { margin-top: 24px; max-width: 60ch; font-size: 1.02rem; color: var(--bone); }
-
-/* 03 · Producto */
-.pf-products__grid { display: grid; gap: 32px 24px; }
-
-@media (min-width: 768px) {
-  .pf-ugc__videos { grid-template-columns: repeat(2, 1fr); }
-  .pf-products__grid { grid-template-columns: repeat(3, 1fr); }
-  .pf-cine__grid { grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); align-items: end; }
-  /* Brief v3 · D: vídeos 58 % · separación clamp(48px, 6vw, 96px) · avatar hasta 30 %, alineado arriba */
-  .pf-ugc__grid { grid-template-columns: minmax(0, 58%) minmax(0, 30%); column-gap: clamp(48px, 6vw, 96px); align-items: start; }
+/* 01 · Cinematográficos: dos piezas grandes en paralelo, mucho aire */
+.pf-cine__grid { display: grid; gap: 48px; justify-content: center; grid-template-columns: minmax(0, 378px); }
+@media (min-width: 640px) {
+  .pf-cine__grid { grid-template-columns: repeat(2, minmax(0, 342px)); gap: clamp(32px, 9vw, 160px); }
 }
 
-/* Anclado: cada estado cabe en una pantalla. Las piezas se dimensionan por altura (dvh) con tope por anchura. */
-.seq.is-pinned.portfolio {
-  --fh: min(62dvh, 680px);
+/* 02 · UGC: fila de tres, compacto */
+.pf-ugc__grid { display: grid; gap: 40px; justify-content: center; grid-template-columns: minmax(0, 288px); }
+@media (min-width: 640px) {
+  .pf-ugc__grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(12px, 2vw, 24px); max-width: 936px; }
 }
-.seq.is-pinned .pf-cine__grid { grid-template-columns: auto minmax(0, 1fr); gap: clamp(32px, 5vw, 88px); align-items: center; }
-.seq.is-pinned .pf-cine__video .piece__frame { height: min(var(--fh), calc((100vw - 2 * var(--gutter)) * 0.46)); width: auto; }
-.seq.is-pinned .pf-stills { max-width: min(400px, 42dvh); }
 
-.seq.is-pinned .pf-ugc { --uh: min(44dvh, 500px, calc((100vw - 2 * var(--gutter)) * 0.58 / 2 * 16 / 9 - 24px)); }
-/* El bloque UGC es el más denso del portfolio: titulares y textos un punto más contenidos para que quepa en pantalla */
-.pf-ugc .portfolio-titulo { font-size: clamp(2.1rem, 4vw, 3.25rem); margin-bottom: clamp(14px, 2.2dvh, 22px); }
-.pf-ugc .avatar-titulo { font-size: clamp(1.1rem, 1.6vw, 1.45rem); margin-bottom: 12px; }
-.pf-ugc .pf-ugc__desc { font-size: 0.9rem; margin-top: 12px; }
-.pf-ugc .pf-ugc__reach { font-size: 0.94rem; margin-top: 18px; }
-.pf-ugc .ficha__meta { font-size: 0.74rem; }
-.seq.is-pinned .pf-ugc__videos { grid-template-columns: auto auto; justify-content: start; }
-.seq.is-pinned .pf-ugc .piece__frame--9x16 { height: var(--uh); width: auto; }
-.seq.is-pinned .pf-ugc__avatar .piece__frame { width: min(100%, 260px); }
-.seq.is-pinned .pf-ugc .ficha { margin-top: 10px; }
+/* 03 · Estudio: rejilla de tres a sangre */
+.pf-studio__grid { display: grid; }
+.pf-studio .piece__frame { border-radius: 0; }
+.pf-studio figcaption { padding-inline: var(--gutter); margin-bottom: 20px; }
+@media (min-width: 640px) {
+  .pf-studio__grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .pf-studio figcaption { padding-inline: clamp(12px, 1.6vw, 24px); margin-bottom: 0; }
+}
 
-.seq.is-pinned .pf-products { --ph: min(52dvh, 600px, calc((100vw - 2 * var(--gutter) - 48px) / 3 * 4 / 3)); }
-.seq.is-pinned .pf-products__grid { grid-template-columns: repeat(3, auto); justify-content: start; }
-.seq.is-pinned .pf-products .piece__frame { height: var(--ph); width: auto; }
-.seq.is-pinned .pf-products .piece { width: calc(var(--ph) * 0.75); }
+/* 04 · Avatares: hoja de casting, piezas pequeñas y grano visible */
+.pf-avatars__grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px 12px; max-width: 960px; }
+@media (min-width: 768px) { .pf-avatars__grid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; } }
+.pf-avatars__n { display: block; margin-top: 10px; font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.12em; color: var(--muted); }
+.avatar { position: relative; }
+/* El grano va en CSS, no en el archivo: aquí debe notarse (parche 3 · 04). */
+.avatar::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.11;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 180px 180px;
+}
+
+/* 05 · Campañas: tres campañas apiladas; fila de cuatro solo por encima de 1024 px, si no 2×2 */
+.pf-campaigns__list { display: grid; gap: clamp(48px, 6vw, 88px); }
+.pf-campaign__grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+@media (min-width: 1025px) { .pf-campaign__grid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; } }
+.pf-campaign__caption { margin-top: 16px; font-size: 0.95rem; color: var(--bone-2); }
+.pf-campaign__caption strong { color: var(--bone); font-weight: 600; }
 
 /* ───────────────────────── El problema (scroll normal, superficie clara) ───────────────────────── */
-.problem { background: var(--bone); color: var(--graphite); }
+/* Parche 2 · P: respiro claro al salir de la secuencia del portfolio */
+.problem { background: var(--sand); color: var(--graphite); }
 .problem :focus-visible { outline-color: var(--graphite); }
 .problem__title { max-width: 22ch; }
 .stats { display: grid; gap: 48px; margin-top: clamp(56px, 8vw, 104px); }
@@ -660,7 +638,7 @@ html[data-accent-lock] .header .wordmark { --dot: var(--bone); }
   white-space: nowrap;
 }
 .stat__unit { font-size: 0.42em; letter-spacing: -0.02em; font-weight: 500; margin-left: 0.08em; }
-.stat__text { margin-top: 20px; color: var(--muted-on-light); max-width: 32ch; }
+.stat__text { margin-top: 20px; color: #6b6055; max-width: 32ch; }
 .problem__closing {
   margin-top: clamp(64px, 9vw, 120px);
   font-size: clamp(1.5rem, 3vw, 2.5rem);
@@ -672,45 +650,52 @@ html[data-accent-lock] .header .wordmark { --dot: var(--bone); }
 }
 
 /* ───────────────────────── VOLT (secuencia anclada, 5 estados) ───────────────────────── */
-/* Brief v3 · E: VOLT pasa a beige. Texto grafito, iniciales en ámbar oscuro (el claro no contrasta sobre beige). */
+/* Parche 2 · S: VOLT vuelve a oscuro con una imagen estática de fondo (se descarta el despiece de la cámara). */
 .volt {
-  background: var(--beige);
-  color: var(--graphite);
-  --volt-muted: #8c8a83;
-  --line: rgba(12, 13, 12, 0.12);
-  --line-strong: rgba(12, 13, 12, 0.3);
+  background: var(--veil);
+  color: var(--bone);
+  --volt-muted: var(--muted);
 }
-.volt :focus-visible { outline-color: var(--graphite); }
-.volt .btn--primary { background: var(--graphite); color: var(--bone); }
-.volt .btn--primary:hover { background: #2a2a26; }
 
-/* Fondo: despiece de cámara al 22 %, detrás del texto (a esa opacidad no hace falta scrim) */
-.volt__bg { position: absolute; inset: 0; display: grid; place-items: center; pointer-events: none; overflow: hidden; }
-/* Las piezas montadas se desplazan fuera del lienzo: sin este recorte ensanchaban el viewport en móvil */
-.seq.is-stacked .volt__bg { position: absolute; inset: 0 0 auto 0; height: min(48dvh, 440px); }
-/* Brief v3 · F: sin fondo propio; cada pieza en un envoltorio del tamaño del lienzo para que el % de dx sea el correcto */
-.volt-camara {
-  position: relative;
-  width: min(100%, calc(100dvh * 1.7917));
-  aspect-ratio: 2752 / 1536;
-  background: none;
-}
-.volt__bg.is-animated .volt-camara { transition: --p 1.4s var(--ease-out); }
-.pieza-wrap {
+/* Parche de capas visuales §4: el fondo es la órbita de cámara (orbit-scrub.css). */
+/* La cabeza del sujeto está pegada al borde superior del frame: la imagen empieza bajo el header (que la tapaba) y se
+   ancla arriba, para que la cara se vea completa en todas las posiciones de la órbita. */
+.volt-orbit .orbit__media { top: var(--header-h); height: calc(100lvh - var(--header-h)); }
+/* Hueco del header: el borde superior de la imagen en espejo (misma caja y recorte que .orbit__media, volteada). */
+.volt-orbit .orbit__bleed { position: absolute; top: 0; left: 0; right: 0; height: var(--header-h); overflow: hidden; pointer-events: none; }
+.volt-orbit .orbit__bleed img {
   position: absolute;
-  inset: 0;
-  transform: translateX(calc(var(--dx) * (1 - var(--p)) * var(--k, 1)));
-  will-change: transform;
+  left: 0;
+  top: var(--header-h);
+  width: 100%;
+  height: calc(100lvh - var(--header-h));
+  object-fit: cover;
+  object-position: 50% 0%;
+  transform: scaleY(-1);
+  transform-origin: top;
+  filter: blur(6px); /* reflejo suave: continúa el tono sin duplicar detalles */
 }
-.pieza-wrap img {
-  position: absolute;
-  left: var(--x);
-  top: var(--y);
-  width: var(--w);
-  height: auto;
-  max-width: none;
-  opacity: 0.13; /* piezas negras sobre beige: 12-15 % */
+.volt-orbit-driver.is-stacked .orbit__bleed { display: none; }
+.volt-orbit .orbit__image { object-position: 50% 0%; }
+/* Anclado: .orbit ya es el escenario sticky de 100svh; el stage de la secuencia pasa a ocupar su contenido. */
+.volt-orbit-driver.is-pinned .seq__stage { position: relative; top: auto; height: 100%; overflow: hidden; }
+/* Apilado (móvil, tablet vertical): los cinco bloques ocupan más de una pantalla y no caben en un .orbit de 100svh.
+   El driver toma la altura real del contenido, la órbita y su velo quedan fijos detrás (sticky con margen negativo) y
+   los bloques pasan por delante. overflow: clip evita que el fondo asome sobre la sección siguiente sin romper el sticky. */
+.volt-orbit-driver.is-stacked { height: auto; }
+.volt-orbit-driver.is-stacked .orbit { position: relative; top: auto; height: auto; overflow: clip; }
+.volt-orbit-driver.is-stacked .orbit__media,
+.volt-orbit-driver.is-stacked .orbit__scrim { position: sticky; top: 0; bottom: auto; height: 100lvh; margin-bottom: -100lvh; }
+.volt-orbit-driver.is-stacked .orbit__media {
+  top: var(--header-h);
+  height: calc(100lvh - var(--header-h));
+  margin-bottom: calc(var(--header-h) - 100lvh);
 }
+.volt-orbit-driver.is-stacked .orbit__content { height: auto; }
+/* La intro apilada medía 217 px: el bloque V pasaba el centro de la pantalla antes de que el driver empezara a contar
+   (p < 0) y el tramo de la intro de los SCROLL_STOPS colapsaba al 1 %. Con una pantalla propia, como en escritorio, la
+   cámara tiene su reposo en la intro y el salto intro → V cae en la transición. Solo cambia el alto, no el contenido. */
+.volt-orbit-driver.is-stacked .volt-intro { min-height: 100svh; display: flex; align-items: center; }
 
 .volt .seq__state { z-index: 1; }
 .volt-intro__title {
@@ -719,7 +704,7 @@ html[data-accent-lock] .header .wordmark { --dot: var(--bone); }
   font-weight: 600;
   letter-spacing: -0.05em;
 }
-.volt-intro__steps { margin-top: 22px; font-size: clamp(1.1rem, 2vw, 1.6rem); color: var(--graphite); letter-spacing: -0.01em; }
+.volt-intro__steps { margin-top: 22px; font-size: clamp(1.1rem, 2vw, 1.6rem); color: var(--bone-2); letter-spacing: -0.01em; }
 
 .volt-step__grid { display: grid; gap: 24px 64px; }
 @media (min-width: 768px) {
@@ -731,15 +716,29 @@ html[data-accent-lock] .header .wordmark { --dot: var(--bone); }
   line-height: 0.8;
   font-weight: 700;
   letter-spacing: -0.06em;
-  color: var(--amber-on-light); /* #A9641A: 3,2:1 sobre beige, válido para texto grande */
+  color: var(--amber); /* parche 2 · S: #E8A24A sobre el velo (8,17:1) */
 }
 .volt-step--last .volt-step__letter { font-size: clamp(5rem, min(12vw, 15dvh), 10rem); }
 .volt-step__name { margin-top: 16px; font-size: clamp(1.6rem, 2.6vw, 2.3rem); font-weight: 500; letter-spacing: -0.02em; }
 .volt-step__what { margin-top: 6px; color: var(--volt-muted); }
 .volt-step__body { font-size: clamp(1.02rem, 1.3vw, 1.16rem); max-width: 46ch; }
 .volt-step__closing { margin-top: 18px; font-weight: 650; font-size: clamp(1.05rem, 1.4vw, 1.25rem); max-width: 40ch; }
-.volt-step__out { margin-top: 20px; font-size: 0.92rem; color: var(--graphite); }
-.volt-step__out span { font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--volt-muted); margin-right: 10px; }
+/* "Qué sale": etiqueta en píldora, hueso sobre el velo (antes grafito, ilegible tras el cambio a fondo oscuro) */
+.volt-step__out {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 10px;
+  margin-top: 22px;
+  padding: 8px 14px;
+  border: 1px solid rgba(244, 241, 234, 0.22);
+  border-radius: 999px;
+  background: rgba(16, 12, 10, 0.35);
+  font-size: 0.92rem;
+  font-weight: 500;
+  color: var(--bone);
+}
+.volt-step__out span { font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
 
 .volt-cal { display: grid; grid-template-columns: repeat(2, 1fr); border-top: 1px solid var(--line-strong); }
 @media (min-width: 768px) { .volt-cal { grid-template-columns: repeat(4, 1fr); } }
@@ -750,7 +749,7 @@ html[data-accent-lock] .header .wordmark { --dot: var(--bone); }
 .volt-step__deal { font-size: clamp(1.05rem, 1.6vw, 1.35rem); line-height: 1.25; letter-spacing: -0.015em; max-width: 44ch; }
 
 /* ───────────────────────── Por qué mrl. (scroll normal, cabe en una pantalla) ───────────────────────── */
-.why { background: var(--graphite-2); padding-block: clamp(64px, 8dvh, 96px); }
+.why { background: var(--graphite); padding-block: clamp(64px, 8dvh, 96px); } /* parche 2 · P */
 .why__grid { display: grid; gap: 24px; margin-top: clamp(28px, 4dvh, 44px); }
 @media (min-width: 768px) { .why__grid { grid-template-columns: repeat(2, 1fr); gap: 36px 56px; } }
 .why__item {
@@ -788,6 +787,7 @@ html[data-accent-lock] .header .wordmark { --dot: var(--bone); }
 }
 
 /* ───────────────────────── FAQ ───────────────────────── */
+.faq { background: var(--graphite-2); } /* parche 2 · P */
 .faq__inner { max-width: calc(680px + 2 * var(--gutter)); margin-inline: auto; padding-inline: var(--gutter); }
 .faq__title { margin-bottom: clamp(28px, 4dvh, 44px); }
 .faq__item {
@@ -826,14 +826,14 @@ html[data-accent-lock] .header .wordmark { --dot: var(--bone); }
 .faq__panel p { padding-bottom: 22px; color: var(--bone-2); opacity: 0; transition: opacity 0.18s var(--ease-out); }
 .faq__item.is-open .faq__panel p { opacity: 1; transition-delay: 40ms; }
 
-/* ───────────────────────── Cierre (hueso + reloj ligado al scroll) ───────────────────────── */
+/* ───────────────────────── Cierre (arena + reloj estático) ───────────────────────── */
 .closing {
   position: relative;
   overflow: hidden;
   min-height: 100dvh;
   display: flex;
   align-items: center;
-  background: var(--bone);
+  background: var(--sand); /* parche 2 · T: arena derivada del fondo del reloj */
   color: var(--graphite);
   isolation: isolate;
 }
@@ -858,46 +858,17 @@ html[data-accent-lock] .header .wordmark { --dot: var(--bone); }
   color: var(--graphite);
 }
 .clock__dial { width: 100%; height: 100%; object-fit: cover; }
-/* Plano inclinado de las agujas: reproduce el escorzo de la esfera. */
-/* Brief v3 · G: sin transform-style: preserve-3d (el SVG es plano y rotateX ya lo aplasta). */
-.reloj-agujas {
-  position: absolute;
-  left: 48.5%;
-  top: 50.6%; /* pivote sobre el pin de latón */
-  width: 71.4%; /* diámetro = eje mayor de la elipse */
-  aspect-ratio: 1;
-  translate: -50% -50%;
-  transform: rotate(-5.6deg) rotateX(61deg);
+/* Móvil y tablet en vertical: recorte 9:16 del reloj (864×1536 centrado en el pin) a sangre, sin bandas. */
+@media (max-width: 767px), (max-width: 1024px) and (orientation: portrait) {
+  .clock {
+    width: auto;
+    height: auto;
+    min-width: 100%;
+    min-height: 100%;
+    aspect-ratio: 864 / 1536;
+  }
 }
-.clock__ring, .reloj-agujas svg { position: absolute; inset: 0; width: 100%; height: 100%; }
-.horaria, .minutera {
-  fill: #0c0d0c;
-  transform-box: view-box;
-  transform-origin: 100px 100px;
-}
-/* 10:10 → 10:25, ligado al scroll (nunca con animation): --h 305° → 312,5° · --m 60° → 150° */
-.horaria { transform: rotate(var(--h, 305deg)); }
-.minutera { transform: rotate(var(--m, 60deg)); }
-.clock--fallback { opacity: 0.14; }
 
-/* Calendario Cal.com */
-.booking {
-  width: 100%;
-  max-width: 1040px;
-  margin-top: clamp(36px, 5vw, 56px);
-  border-radius: 6px;
-  background: rgba(255, 255, 255, 0.7);
-  border: 1px solid var(--line-dark);
-  overflow: hidden;
-  text-align: left;
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
-}
-.booking__frame { width: 100%; min-height: 640px; overflow: auto; }
-.booking--notice { display: grid; justify-items: center; gap: 18px; padding: clamp(40px, 7vw, 80px) 24px; text-align: center; }
-.booking--notice p { max-width: 50ch; }
-.booking--notice .muted { color: var(--muted-on-light); }
-.booking--notice a { text-decoration: underline; text-underline-offset: 3px; }
 
 /* ───────────────────────── Footer ───────────────────────── */
 .footer { border-top: 1px solid var(--line); padding-block: 56px 40px; font-size: 0.92rem; }
@@ -912,27 +883,6 @@ html[data-accent-lock] .header .wordmark { --dot: var(--bone); }
 .footer a:hover, .footer .linklike:hover { color: var(--bone); }
 .footer .linklike { text-decoration: none; font-size: inherit; }
 .footer__copy { color: var(--muted); padding-top: 24px; border-top: 1px solid var(--line); }
-
-/* ───────────────────────── Cookies ───────────────────────── */
-.cookie {
-  position: fixed;
-  left: 16px;
-  right: 16px;
-  bottom: 16px;
-  z-index: 60;
-  max-width: 560px;
-  display: grid;
-  gap: 16px;
-  padding: 20px;
-  border-radius: 8px;
-  background: var(--graphite-2);
-  border: 1px solid var(--line-strong);
-  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.5);
-  font-size: 0.9rem;
-}
-.cookie a { text-decoration: underline; text-underline-offset: 3px; }
-.cookie__actions { display: flex; gap: 10px; }
-.cookie__actions .btn { flex: 1 1 0; }
 
 /* ───────────────────────── Legales ───────────────────────── */
 .legal { padding-block: calc(var(--header-h) + 48px) 96px; }
@@ -956,7 +906,6 @@ html[data-accent-lock] .header .wordmark { --dot: var(--bone); }
     transition-delay: 0s !important;
   }
   .marquee__sep { animation: none !important; }
-  .hero__flash { display: none; }
   /* Estado 3 completo desde el inicio: se leen las dos frases del h1 */
   .hero--static .hero__line--2 { opacity: 1; visibility: visible; transform: none; grid-area: auto; margin-bottom: 18px; }
   .hero--static .hero__h1 > * { grid-area: auto; }

@@ -8,7 +8,6 @@ import { Why } from './components/Why';
 import { Faq } from './components/Faq';
 import { Closing } from './components/Closing';
 import { Footer } from './components/Footer';
-import { CookieBanner } from './components/CookieBanner';
 
 export function App() {
   return (
@@ -26,7 +25,6 @@ export function App() {
         <Closing />
       </main>
       <Footer />
-      <CookieBanner />
     </>
   );
 }

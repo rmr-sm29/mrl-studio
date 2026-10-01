@@ -1,123 +1,239 @@
-import { useRef } from 'react';
-import { portfolio } from '../content';
-import { sizes, srcset } from '../media';
-import { usePinned, useSequence } from '../hooks';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { portfolio, site } from '../content';
+import { portfolioImg } from '../media';
+import { useInViewOnce } from '../hooks';
 import { VideoPiece } from './VideoPiece';
 import { Ficha } from './Ficha';
 
-export const rel = (i: number, active: number) => (i === active ? 'active' : i < active ? 'past' : 'future');
+const { intro, cine, ugc, studio, avatars, campaigns } = portfolio;
 
-function Picture({ base, widths, sizesAttr, w, h, className }: { base: string; widths: number[]; sizesAttr: string; w: number; h: number; className?: string }) {
+const BLOCKS = [
+  { id: 'pf-cine', label: cine.nav },
+  { id: 'pf-ugc', label: ugc.nav },
+  { id: 'pf-estudio', label: studio.nav },
+  { id: 'pf-avatares', label: avatars.nav },
+  { id: 'pf-campanas', label: campaigns.nav },
+];
+
+/** true mientras el bloque esté en pantalla: solo se reproducen los vídeos del bloque visible. */
+function useVisible<T extends Element>(ref: React.RefObject<T | null>) {
+  const [visible, setVisible] = useState(false);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const io = new IntersectionObserver(([e]) => setVisible(e.isIntersecting), { threshold: 0.25 });
+    io.observe(el);
+    return () => io.disconnect();
+  }, [ref]);
+  return visible;
+}
+
+/** Bloque del portfolio: número + título, el trabajo y, debajo, la línea de argumento. */
+function Block({
+  id,
+  n,
+  title,
+  line,
+  className,
+  children,
+}: {
+  id: string;
+  n: string;
+  title: string;
+  line: ReactNode;
+  className: string;
+  children: (visible: boolean) => ReactNode;
+}) {
+  const ref = useRef<HTMLElement>(null);
+  const seen = useInViewOnce(ref, '0px 0px -12% 0px');
+  const visible = useVisible(ref);
   return (
-    <picture>
-      <source type="image/avif" srcSet={srcset(base, widths, 'avif')} sizes={sizesAttr} />
-      <source type="image/webp" srcSet={srcset(base, widths, 'webp')} sizes={sizesAttr} />
-      <img className={className} src={`/media/${base}-${widths[widths.length - 1]}.jpg`} srcSet={srcset(base, widths, 'jpg')} sizes={sizesAttr} width={w} height={h} alt="" loading="lazy" decoding="async" />
-    </picture>
+    <section id={id} ref={ref} className={`pf-block ${className} ${seen ? 'is-in' : ''}`} aria-labelledby={`${id}-title`}>
+      <div className="container">
+        <h3 id={`${id}-title`} className="portfolio-titulo">
+          <span className="pf-block__n" aria-hidden="true">{n}</span>
+          {title}
+        </h3>
+      </div>
+      {children(visible)}
+      <div className="container">
+        <p className="pf-line">{line}</p>
+      </div>
+    </section>
+  );
+}
+
+const stagger = (i: number) => ({ '--i': i }) as React.CSSProperties;
+
+function Img({ id, alt, w, h }: { id: string; alt: string; w: number; h: number }) {
+  return <img src={portfolioImg(id)} alt={alt} width={w} height={h} loading="lazy" decoding="async" />;
+}
+
+/** Barra de accesos rápidos: pegajosa dentro de la sección, marca el bloque activo. */
+function QuickNav() {
+  const [active, setActive] = useState(BLOCKS[0].id);
+  const listRef = useRef<HTMLUListElement>(null);
+
+  useEffect(() => {
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) if (e.isIntersecting) setActive(e.target.id);
+      },
+      { rootMargin: '-45% 0px -50% 0px' },
+    );
+    BLOCKS.forEach((b) => {
+      const el = document.getElementById(b.id);
+      if (el) io.observe(el);
+    });
+    return () => io.disconnect();
+  }, []);
+
+  // En móvil la barra scrollea en horizontal: lleva el acceso activo a la vista sin mover la página.
+  useEffect(() => {
+    const list = listRef.current;
+    const link = list?.querySelector<HTMLElement>(`[href="#${active}"]`);
+    if (!list || !link || list.scrollWidth <= list.clientWidth) return;
+    const target = link.offsetLeft - (list.clientWidth - link.offsetWidth) / 2;
+    list.scrollTo({ left: target, behavior: 'smooth' });
+  }, [active]);
+
+  return (
+    <nav className="pf-nav" aria-label="Bloques del portfolio">
+      <ul ref={listRef} className="pf-nav__list">
+        {BLOCKS.map((b) => (
+          <li key={b.id}>
+            <a href={`#${b.id}`} className="pf-nav__link" aria-current={active === b.id ? 'true' : undefined}>
+              {b.label}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </nav>
   );
 }
 
 /**
- * Secuencia anclada de 4 estados: 00 entrada · 01 cinematográfico · 02 UGC · 03 imagen de producto.
- * Transición de carrusel con solape (el saliente sube y se desvanece, el entrante llega desde abajo). Sin flash.
- * En móvil / tablet vertical / movimiento reducido: los cuatro bloques apilados a scroll normal.
+ * Parche 3: portfolio a scroll continuo, cinco bloques con ritmo alterno y barra de accesos rápidos.
+ * El fondo de plató sigue anclado al viewport (sticky de altura 0, primer hijo).
  */
 export function Portfolio() {
-  const ref = useRef<HTMLElement>(null);
-  const pinned = usePinned();
-  const { index: active, fast } = useSequence(ref, 4, pinned);
-  const { intro, cinematic, ugc, products } = portfolio;
-  const isOn = (i: number) => (pinned ? active === i : undefined);
-
   return (
-    <section id="trabajo" ref={ref} className={`seq portfolio ${pinned ? 'is-pinned' : 'is-stacked'} ${fast ? 'is-fast' : ''}`} style={{ '--states': 4 } as React.CSSProperties} aria-labelledby="trabajo-title">
-      <div className="seq__stage">
-        <p className="seq__numeral" aria-hidden="true">
-          {['01', '02', '03'].map((n, i) => (
-            <span key={n} data-rel={rel(i + 1, active)}>{n}</span>
-          ))}
-        </p>
+    <section id="trabajo" className="portfolio portfolio-bg" aria-labelledby="trabajo-title">
+      <div className="portfolio-bg__backdrop" aria-hidden="true">
+        <div className="portfolio-bg__frame">
+          <img
+            className="portfolio-bg__image"
+            src="/media/portfolio/portfolio-bg-desktop.webp"
+            srcSet="/media/portfolio/portfolio-bg-mobile.webp 900w, /media/portfolio/portfolio-bg-tablet.webp 1400w, /media/portfolio/portfolio-bg-desktop.webp 2400w"
+            sizes="100vw"
+            alt=""
+            loading="lazy"
+            decoding="async"
+          />
+        </div>
+      </div>
 
-        {/* 00 · Entrada (obligatoria: explica que todas las piezas son de la marca propia mrl.) */}
-        <div className="seq__state pf-intro" data-rel={pinned ? rel(0, active) : 'active'} inert={pinned && active !== 0}>
+      <header className="container pf-intro">
+        <p className="eyebrow">Trabajo</p>
+        <h2 id="trabajo-title" className="pf-intro__title">{intro.heading}</h2>
+        <p className="pf-intro__body">{intro.body}</p>
+      </header>
+
+      <QuickNav />
+
+      <Block id="pf-cine" n="01" title={cine.title} line={cine.line} className="pf-cine">
+        {(visible) => (
+          <div className="container pf-cine__grid">
+            {cine.videos.map((v, i) => (
+              <div key={v.id} className="pf-reveal" style={stagger(i)}>
+                <VideoPiece {...v} active={visible} />
+              </div>
+            ))}
+          </div>
+        )}
+      </Block>
+
+      <Block
+        id="pf-ugc"
+        n="02"
+        title={ugc.title}
+        className="pf-ugc"
+        line={
+          <>
+            {ugc.line}{' '}
+            <a href={site.instagramUrl} target="_blank" rel="noopener">
+              {ugc.lineLink}
+            </a>
+          </>
+        }
+      >
+        {(visible) => (
+          <div className="container pf-ugc__grid">
+            {ugc.videos.map((v, i) => (
+              <div key={v.id} className="pf-reveal" style={stagger(i)}>
+                <VideoPiece {...v} active={visible} />
+              </div>
+            ))}
+          </div>
+        )}
+      </Block>
+
+      <Block id="pf-estudio" n="03" title={studio.title} line={studio.line} className="pf-studio">
+        {() => (
+          <div className="pf-studio__grid">
+            {studio.items.map((p, i) => (
+              <figure key={p.id} className="piece piece--image pf-reveal" style={stagger(i)}>
+                <div className="piece__frame piece__frame--3x4">
+                  <Img id={p.id} alt={p.alt} w={1200} h={1607} />
+                </div>
+                <figcaption>
+                  <Ficha meta={p.meta} tech={p.tech} />
+                </figcaption>
+              </figure>
+            ))}
+          </div>
+        )}
+      </Block>
+
+      <Block id="pf-avatares" n="04" title={avatars.title} line={avatars.line} className="pf-avatars">
+        {() => (
           <div className="container">
-            <p className="eyebrow">Trabajo</p>
-            <h2 id="trabajo-title" className="pf-intro__title">{intro.heading}</h2>
-            <ol className="pf-chain" aria-label="Proceso completo">
-              {intro.chain.map((c, i) => (
-                <li key={c} style={{ '--i': i } as React.CSSProperties}>
-                  <span className="pf-chain__tag">{c}</span>
-                  {i < intro.chain.length - 1 && <span className="pf-chain__arrow" aria-hidden="true">→</span>}
+            <ol className="pf-avatars__grid" aria-label="Hoja de casting">
+              {avatars.items.map((a, i) => (
+                <li key={a.id} className="pf-reveal" style={stagger(i)}>
+                  <div className="piece__frame piece__frame--3x4 avatar">
+                    <Img id={a.id} alt={a.alt} w={900} h={1200} />
+                  </div>
+                  <span className="pf-avatars__n" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
                 </li>
               ))}
             </ol>
-            <p className="pf-intro__body">
-              Todas las piezas son de <strong className="nowrap">mrl.</strong>. {intro.body}
-            </p>
           </div>
-        </div>
+        )}
+      </Block>
 
-        {/* 01 · Cinematográfico: vídeo a la izquierda, ficha a la derecha y la tira de tres fotogramas */}
-        <div className="seq__state pf-cine" data-rel={pinned ? rel(1, active) : 'active'} inert={pinned && active !== 1}>
-          <div className="container pf-cine__grid">
-            <VideoPiece id={cinematic.video.id} meta={cinematic.video.meta} active={isOn(1)} caption={false} className="pf-cine__video" />
-            <div className="pf-cine__side">
-              <h3 className="portfolio-titulo">{cinematic.title}</h3>
-              <Ficha meta={cinematic.video.meta} tech={cinematic.video.tech} />
-              <ol className="pf-stills" aria-label="Fotogramas del spot">
-                {cinematic.stills.map((s) => (
-                  <li key={s.id}>
-                    {/* Sin ningún tratamiento CSS: contraluz con negros levantados, cualquier filtro lo emborrona */}
-                    <Picture base={s.id} widths={sizes.still} sizesAttr="(min-width: 1025px) 14vw, 30vw" w={1080} h={1920} className="pf-still" />
-                    <span className="pf-stills__label">{s.label}</span>
-                  </li>
-                ))}
-              </ol>
-            </div>
+      <Block id="pf-campanas" n="05" title={campaigns.title} line={campaigns.line} className="pf-campaigns">
+        {() => (
+          <div className="container pf-campaigns__list">
+            {campaigns.items.map((c) => (
+              <figure key={c.id} className="pf-campaign">
+                <ol className="pf-campaign__grid" aria-label={`Campaña ${c.name}`}>
+                  {c.alts.map((alt, i) => (
+                    <li key={i} className="pf-reveal" style={stagger(i)}>
+                      <div className="piece__frame piece__frame--3x4">
+                        <Img id={`${c.id}-0${i + 1}`} alt={alt} w={1200} h={1607} />
+                      </div>
+                    </li>
+                  ))}
+                </ol>
+                <figcaption className="pf-campaign__caption">
+                  <strong>{c.name}</strong> · {c.caption}
+                </figcaption>
+              </figure>
+            ))}
           </div>
-        </div>
-
-        {/* 02 · UGC: dos vídeos (~60 %) y el avatar a ancho completo de su columna (~40 %) */}
-        <div className="seq__state pf-ugc" data-rel={pinned ? rel(2, active) : 'active'} inert={pinned && active !== 2}>
-          <div className="container">
-            <h3 className="portfolio-titulo">{ugc.title}</h3>
-            <div className="pf-ugc__grid">
-              <div className="pf-ugc__videos">
-                {ugc.videos.map((v) => (
-                  <VideoPiece key={v.id} {...v} active={isOn(2)} />
-                ))}
-              </div>
-              <div className="pf-ugc__avatar">
-                <h4 className="avatar-titulo">{ugc.avatarLabel}</h4>
-                <div className="piece__frame piece__frame--3x4">
-                  <Picture base="avatar" widths={sizes.product} sizesAttr="(min-width: 768px) 300px, 100vw" w={1792} h={2400} />
-                </div>
-                <p className="pf-ugc__desc">{ugc.avatarDesc}</p>
-              </div>
-            </div>
-            <p className="pf-ugc__reach">{ugc.reach}</p>
-          </div>
-        </div>
-
-        {/* 03 · Imagen de producto: rejilla de tres 3:4 a la misma altura */}
-        <div className="seq__state pf-products" data-rel={pinned ? rel(3, active) : 'active'} inert={pinned && active !== 3}>
-          <div className="container">
-            <h3 className="portfolio-titulo">{products.title}</h3>
-            <div className="pf-products__grid">
-              {products.items.map((p) => (
-                <figure key={p.id} className="piece piece--image">
-                  <div className="piece__frame piece__frame--3x4">
-                    <Picture base={`product-${p.id}`} widths={sizes.product} sizesAttr="(min-width: 768px) 30vw, 100vw" w={1792} h={2400} />
-                  </div>
-                  <figcaption>
-                    <Ficha meta={p.meta} tech={p.tech} />
-                  </figcaption>
-                </figure>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
+        )}
+      </Block>
     </section>
   );
 }

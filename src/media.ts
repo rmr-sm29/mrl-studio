@@ -1,7 +1,5 @@
 // Rutas de los assets procesados por `npm run assets` (ver scripts/process-assets.mjs).
 export const sizes = {
-  heroDesktop: [1280, 1920, 2752],
-  heroMobile: [720, 1080, 1536],
   product: [600, 1000],
   still: [360, 540],
   dial: [1280, 1920, 2752],
@@ -14,4 +12,13 @@ export const video = (id: string) => ({
   webm: `/media/video-${id}.webm`,
   mp4: `/media/video-${id}.mp4`,
   poster: `/media/video-${id}-poster.jpg`,
+});
+
+// Parche 3: recursos del portfolio (public/media/portfolio), solo WebP en imagen y WebM + MP4 en vídeo.
+export const portfolioImg = (id: string) => `/media/portfolio/img/${id}.webp`;
+
+export const portfolioVideo = (id: string) => ({
+  webm: `/media/portfolio/video/${id}.webm`,
+  mp4: `/media/portfolio/video/${id}.mp4`,
+  poster: `/media/portfolio/video/${id}-poster.jpg`,
 });

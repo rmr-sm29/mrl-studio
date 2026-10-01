@@ -1,45 +1,22 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useRef } from 'react';
 import { volt } from '../content';
-import { useInViewOnce, usePinned, useReducedMotion, useSequence } from '../hooks';
-import { rel } from './Portfolio';
-import { VoltCamera } from './VoltCamera';
+import { rel, usePinned, useSequence } from '../hooks';
+import { STATIC_SIZES, VOLT_TEXT_THRESHOLDS, staticSrcset } from '../orbit';
 
 /**
  * Secuencia anclada de 5 estados: 00 título · 01 V · 02 O · 03 L · 04 T + calendario + CTA.
- * Mismo solape vertical que el portfolio. El despiece de la cámara es continuo y va ligado al progreso de toda la secuencia.
+ * Mismo solape vertical que el portfolio.
+ *
+ * Fondo: imagen estática a resolución completa, el mismo encuadre en escritorio y en móvil.
  */
 export function Volt() {
-  const ref = useRef<HTMLElement>(null);
-  const camRef = useRef<HTMLDivElement>(null);
+  const ref = useRef<HTMLDivElement>(null);
   const pinned = usePinned();
-  const reduced = useReducedMotion();
 
-  const onProgress = useCallback((p: number) => {
-    // El estado 00 arranca exactamente en --p: 0 (brief v3 · F, prueba 2)
-    camRef.current?.style.setProperty('--p', p < 0.0005 ? '0' : p.toFixed(4));
-  }, []);
-  const { index: active, fast } = useSequence(ref, 5, pinned, { onProgress });
+  // Bloques de texto: intro 24 %, cada letra 19 % del recorrido.
+  const { index: active, fast } = useSequence(ref, 5, pinned, { thresholds: VOLT_TEXT_THRESHOLDS });
 
-  // Sin anclaje: las piezas se separan en una animación corta al entrar la sección. Con movimiento reducido: despiece completo, quieto.
-  const seen = useInViewOnce(ref, '0px 0px -30% 0px');
-  useEffect(() => {
-    if (pinned) return;
-    camRef.current?.style.setProperty('--p', reduced || seen ? '1' : '0');
-  }, [pinned, reduced, seen]);
 
-  // En esta pantalla solo las cuatro iniciales llevan ámbar: el punto del wordmark del header se apaga.
-  const [inView, setInView] = useState(false);
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const io = new IntersectionObserver(([e]) => setInView(e.isIntersecting), { rootMargin: '-10% 0px -10% 0px' });
-    io.observe(el);
-    return () => io.disconnect();
-  }, []);
-  useEffect(() => {
-    document.documentElement.toggleAttribute('data-accent-lock', inView);
-    return () => document.documentElement.removeAttribute('data-accent-lock');
-  }, [inView]);
 
   const state = (i: number) => ({
     'data-rel': pinned ? rel(i, active) : 'active',
@@ -47,12 +24,44 @@ export function Volt() {
   });
 
   return (
-    <section id="metodo" ref={ref} className={`seq volt ${pinned ? 'is-pinned' : 'is-stacked'} ${fast ? 'is-fast' : ''}`} style={{ '--states': 5 } as React.CSSProperties} aria-labelledby="metodo-title">
-      <div className="seq__stage">
-        <div className={`volt__bg ${pinned ? '' : 'is-animated'}`}>
-          <VoltCamera ref={camRef} />
+    <div
+      id="metodo"
+      ref={ref}
+      className={`volt-orbit-driver seq volt ${pinned ? 'is-pinned' : 'is-stacked'} ${fast ? 'is-fast' : ''}`}
+      data-volt-driver
+      style={{ '--states': 5 } as React.CSSProperties}
+    >
+      <section className="orbit volt-orbit" aria-labelledby="metodo-title">
+        <div className="orbit__media">
+          <picture>
+            <source type="image/avif" srcSet={staticSrcset('volt-static', 'avif')} sizes={STATIC_SIZES} />
+            <source type="image/webp" srcSet={staticSrcset('volt-static', 'webp')} sizes={STATIC_SIZES} />
+            <img
+              className="orbit__image"
+              src="/media/volt-static-1920.jpg"
+              srcSet={staticSrcset('volt-static', 'jpg')}
+              sizes={STATIC_SIZES}
+              alt="Director de fotografía de pie en un plató entre dos focos encendidos"
+              width={4046}
+              height={2258}
+              loading="lazy"
+              decoding="async"
+            />
+          </picture>
         </div>
 
+        {/* El hueco del header sobre la imagen se rellena con su propio borde superior en espejo: sin banda negra. */}
+        <div className="orbit__bleed" aria-hidden="true">
+          <picture>
+            <source type="image/avif" srcSet={staticSrcset('volt-static', 'avif')} sizes={STATIC_SIZES} />
+            <source type="image/webp" srcSet={staticSrcset('volt-static', 'webp')} sizes={STATIC_SIZES} />
+            <img src="/media/volt-static-1920.jpg" srcSet={staticSrcset('volt-static', 'jpg')} sizes={STATIC_SIZES} alt="" loading="lazy" decoding="async" />
+          </picture>
+        </div>
+
+        <div className="orbit__scrim" />
+
+        <div className="orbit__content seq__stage">
         <div className="seq__state volt-intro" {...state(0)}>
           <div className="container">
             <h2 id="metodo-title" className="volt-intro__title">{volt.heading}</h2>
@@ -101,7 +110,8 @@ export function Volt() {
             </div>
           </div>
         ))}
-      </div>
-    </section>
+        </div>
+      </section>
+    </div>
   );
 }

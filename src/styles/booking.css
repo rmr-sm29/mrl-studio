@@ -1,0 +1,252 @@
+/* ==================================================================
+   Agenda propia — tarjeta oscura sobre la arena del cierre
+   ================================================================== */
+
+.booking {
+  width: 100%;
+  max-width: 1040px;
+  margin-top: clamp(36px, 5vw, 56px);
+  border-radius: 8px;
+  background: var(--graphite);
+  color: var(--bone);
+  border: 1px solid rgba(16, 12, 10, 0.4);
+  box-shadow: 0 24px 60px rgba(16, 12, 10, 0.22);
+  text-align: left;
+}
+.booking :focus-visible { outline-color: var(--amber); }
+.agenda { padding: clamp(20px, 3.4vw, 40px); }
+.agenda a { text-decoration: underline; text-underline-offset: 3px; }
+.closing .agenda .btn--primary,
+.agenda .btn--primary { background: var(--bone); color: var(--graphite); }
+.closing .agenda .btn--primary:hover,
+.agenda .btn--primary:hover { background: var(--bone-2); }
+.agenda .btn[disabled] { opacity: 0.6; cursor: progress; }
+
+/* ---------- estados ---------- */
+.agenda__state {
+  display: grid;
+  justify-items: center;
+  gap: 16px;
+  padding: clamp(48px, 8vw, 96px) 16px;
+  text-align: center;
+  color: var(--bone-2);
+}
+.agenda__spinner {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 2px solid var(--line-strong);
+  border-top-color: var(--amber);
+  animation: agenda-spin 0.9s linear infinite;
+}
+@keyframes agenda-spin { to { transform: rotate(360deg); } }
+.agenda__alert {
+  margin-bottom: 20px;
+  padding: 12px 16px;
+  border-radius: 6px;
+  border: 1px solid rgba(232, 162, 74, 0.45);
+  background: rgba(232, 162, 74, 0.1);
+  color: var(--bone);
+  font-size: 0.92rem;
+}
+
+/* ---------- selector de día y hora ---------- */
+.slots {
+  display: grid;
+  gap: clamp(24px, 4vw, 48px);
+}
+@media (min-width: 820px) {
+  .slots { grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); }
+}
+.slots--empty { display: grid; gap: 10px; padding: 48px 8px; text-align: center; }
+
+.slots__month {
+  margin-bottom: 16px;
+  font-weight: 600;
+  font-size: 1.05rem;
+  letter-spacing: -0.01em;
+}
+.slots__grid { display: grid; gap: 6px; }
+.slots__row { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; }
+.slots__row > span { display: grid; }
+.slots__wd {
+  padding-bottom: 4px;
+  text-align: center;
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+.slots__day {
+  aspect-ratio: 1;
+  min-height: 40px;
+  display: grid;
+  place-items: center;
+  border-radius: 6px;
+  border: 1px solid var(--line);
+  background: rgba(244, 241, 234, 0.04);
+  color: var(--bone);
+  font-size: 0.95rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  transition: background-color 0.2s, border-color 0.2s, color 0.2s;
+}
+.slots__day:hover:not(:disabled) { border-color: var(--line-strong); background: rgba(244, 241, 234, 0.09); }
+.slots__day:disabled { cursor: default; background: transparent; border-color: transparent; color: rgba(244, 241, 234, 0.24); font-weight: 400; }
+.slots__day[hidden] { display: none; }
+.slots__day[aria-pressed='true'] { background: var(--amber); border-color: var(--amber); color: var(--graphite); }
+
+.slots__date { margin-bottom: 16px; font-weight: 600; font-size: 1.05rem; letter-spacing: -0.01em; }
+.slots__list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  gap: 8px;
+}
+.slots__time {
+  width: 100%;
+  min-height: 48px;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 2px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--line-strong);
+  background: transparent;
+  color: var(--bone);
+  font-family: var(--mono);
+  font-size: 0.95rem;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  transition: background-color 0.2s, border-color 0.2s, color 0.2s;
+}
+.slots__time:hover { border-color: var(--bone); }
+.slots__time[aria-pressed='true'] { background: var(--bone); color: var(--graphite); }
+.slots__local { font-family: var(--font); font-size: 0.7rem; color: var(--muted); }
+.slots__time[aria-pressed='true'] .slots__local { color: var(--muted-on-light); }
+.slots__hint { margin-top: 16px; color: var(--muted); font-size: 0.85rem; }
+
+/* ---------- formulario ---------- */
+.agenda__head {
+  display: grid;
+  gap: 14px;
+  padding-bottom: 22px;
+  margin-bottom: 24px;
+  border-bottom: 1px solid var(--line);
+}
+.agenda__back {
+  justify-self: start;
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  min-height: 36px;
+  color: var(--bone-2);
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+.agenda__back:hover { color: var(--bone); }
+.agenda__when { display: grid; gap: 4px; outline: none; }
+.agenda__label { font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); font-weight: 400; }
+.agenda__date { font-size: clamp(1.25rem, 2.4vw, 1.6rem); font-weight: 600; letter-spacing: -0.02em; }
+.agenda__date::first-letter { text-transform: uppercase; }
+
+.agenda__fields { display: grid; gap: 18px; }
+@media (min-width: 720px) {
+  .agenda__fields { grid-template-columns: 1fr 1fr; gap: 20px 24px; }
+  .agenda__field--wide { grid-column: 1 / -1; }
+}
+.agenda__field { display: grid; gap: 8px; }
+.agenda__field label { font-size: 0.9rem; font-weight: 600; }
+.agenda__opt { color: var(--muted); font-weight: 400; }
+.agenda__field input,
+.agenda__field textarea {
+  width: 100%;
+  min-height: 48px;
+  padding: 12px 14px;
+  border-radius: 6px;
+  border: 1px solid var(--line-strong);
+  background: rgba(244, 241, 234, 0.05);
+  color: var(--bone);
+  font: inherit;
+  font-size: 1rem; /* evita el zoom de iOS al enfocar */
+  transition: border-color 0.2s, background-color 0.2s;
+}
+.agenda__field textarea { resize: vertical; min-height: 96px; }
+.agenda__field input:focus,
+.agenda__field textarea:focus { outline: none; border-color: var(--amber); background: rgba(244, 241, 234, 0.08); }
+.agenda__field.has-error input,
+.agenda__field.has-error textarea { border-color: #e07a5f; }
+.agenda__error { color: #f0a58f; font-size: 0.85rem; }
+
+.agenda__hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+
+.agenda__consent {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  margin-top: 24px;
+  font-size: 0.9rem;
+  color: var(--bone-2);
+  cursor: pointer;
+}
+.agenda__consent input { flex: none; width: 20px; height: 20px; margin-top: 1px; accent-color: var(--amber); }
+.agenda__consent.has-error { color: #f0a58f; }
+.agenda__consent + .agenda__error { margin: 6px 0 0 32px; }
+.agenda__form .agenda__alert { margin: 20px 0 0; }
+.agenda__submit { margin-top: 28px; width: 100%; }
+@media (min-width: 720px) { .agenda__submit { width: auto; } }
+
+/* ---------- confirmación ---------- */
+.agenda__done {
+  display: grid;
+  justify-items: center;
+  gap: 14px;
+  padding: clamp(32px, 6vw, 64px) 8px;
+  text-align: center;
+}
+.agenda__done h3 { font-size: clamp(1.5rem, 3vw, 2rem); font-weight: 600; letter-spacing: -0.03em; outline: none; }
+.agenda__done p { max-width: 46ch; color: var(--bone-2); }
+.agenda__done .agenda__date { color: var(--bone); }
+.agenda__check {
+  width: 52px;
+  height: 52px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--amber);
+  color: var(--graphite);
+  font-size: 1.4rem;
+  font-weight: 700;
+}
+.agenda__done .btn { margin-top: 8px; }
+.agenda__fine { font-size: 0.88rem; }
+
+/* ==================================================================
+   Página /reserva (gestión desde el email)
+   ================================================================== */
+.manage .booking { margin-top: 24px; background: var(--graphite-2); border-color: var(--line); box-shadow: none; }
+.manage__card {
+  margin-top: 32px;
+  display: grid;
+  gap: 8px;
+  justify-items: start;
+  padding: 28px;
+  border-radius: 8px;
+  border: 1px solid var(--line-strong);
+  background: var(--graphite-2);
+}
+.manage__card .btn { margin-top: 16px; }
+.manage__label { font-family: var(--mono); font-size: 0.75rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--amber); }
+.manage__when { font-size: clamp(1.4rem, 3vw, 2rem); font-weight: 600; letter-spacing: -0.02em; color: var(--bone); }
+.manage__when::first-letter { text-transform: uppercase; }
+.manage__when.is-cancelled { text-decoration: line-through; color: var(--muted); }
+.legal .manage__card p { margin-top: 0; }
+.manage__actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 24px; }
+.manage__confirm { margin-top: 24px; }
+.manage__notice { margin-top: 24px; padding: 14px 16px; border-radius: 6px; border: 1px solid var(--line-strong); color: var(--bone); }
+.manage__back { margin-top: 16px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .agenda__spinner { animation: none; }
+}

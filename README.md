@@ -14,29 +14,31 @@ npm run assets     # reprocesa assets-src/ → public/media/ (requiere ffmpeg)
 - Copy: `src/content.ts` (todo el texto del brief en un solo sitio)
 - Estilos: `src/styles.css` (tokens de paleta en `:root`)
 - Legales: `src/legal/LegalPage.tsx` → **completar los datos entre [corchetes]**
-- Despiece VOLT: `src/volt-camera.json` (lo genera `npm run assets` desde `assets-src/volt-camera/manifest.json`);
-  para separar más las piezas, sube `EXPLODE_FACTOR` en `src/components/VoltCamera.tsx` (1,2-1,3)
+- Fondo de VOLT: imagen estática `volt-desktop` / `volt-mobile` (parche 2 · S), generada por `npm run assets`
 - Recorrido de scroll por estado de las secuencias: `--step` en `src/styles.css`
 
 ## Variables de entorno (Vercel → Settings → Environment Variables)
 
-| Variable | Ejemplo | Uso |
-|---|---|---|
-| `VITE_BOOKING_PATH` | `usuario/15min` | Ruta del evento en Cal.com (embebido) |
-| `VITE_CONTACT_EMAIL` | — | Email del footer y de los legales |
-| `SITE_URL` | `https://tu-dominio.com` | URL canónica, og:image y sitemap. Si falta, se usa el dominio de producción de Vercel |
+| Variable | Uso |
+|---|---|
+| `VITE_CONTACT_EMAIL` | Email del footer y de los legales |
+| `SITE_URL` | URL canónica, og:image, sitemap y enlaces de los emails. Si falta, se usa el dominio de producción de Vercel |
+| `DATABASE_URL` | Neon (la añade Vercel al conectar Storage → Neon) |
+| `GOOGLE_CLIENT_ID` · `GOOGLE_CLIENT_SECRET` | Cliente OAuth "Aplicación web" del proyecto de Google Cloud |
+| `GOOGLE_REFRESH_TOKEN` | Lo genera `npm run google:auth` en `.env.local` |
+| `GOOGLE_CALENDAR_ID` | Calendario donde se crean las reservas (vacío = principal) |
+| `RESEND_API_KEY` · `EMAIL_FROM` · `ADMIN_EMAIL` | Emails de confirmación, recordatorio y aviso interno |
+| `BOOKING_SECRET` | Firma de los enlaces de gestión (`openssl rand -base64 32`) |
+| `CRON_SECRET` | Protege `/api/cron/reminders`; Vercel lo envía solo en la tarea programada |
 
 Las `VITE_*` se incrustan al compilar: tras cambiarlas hay que volver a desplegar.
 
-## Calendario (Cal.com)
+## Agenda propia
 
-Crear un evento de 15 min, ubicación **videollamada** (Cal Video / Google Meet), y en *Booking questions*:
-
-1. Nombre — obligatorio (viene por defecto)
-2. Marca — texto corto, obligatorio
-3. Email — obligatorio (viene por defecto)
-4. `Teléfono (opcional)` — tipo *Phone*, **no** obligatorio. No usar la ubicación "Llamada telefónica"
-5. Web o Instagram — texto corto, obligatorio
-6. Qué necesitas — *Select*, obligatorio: `spot` · `UGC` · `imagen de producto` · `no lo tengo claro`
-
-El calendario solo se carga tras aceptar cookies de terceros (RGPD).
+- Reglas (duración, horario, antelación, tope diario): `api/_lib/config.ts`. Para bloquear un día u horas, crea un
+  evento en Google Calendar: la disponibilidad descuenta todo lo ocupado del calendario principal y del de reservas.
+- Funciones: `api/slots` (huecos), `api/book` (reserva + evento con Google Meet + emails), `api/booking` (ver, cambiar
+  de hora, cancelar desde `/reserva?id&t`), `api/cron/reminders` (recordatorio diario, 07:00 UTC, `vercel.json`).
+- Base de datos: `db/schema.sql`, aplicar con `npm run db:migrate`. El índice único sobre la hora impide dobles reservas.
+- En local, `npm run dev` sirve también `/api` (plugin de `vite.config.ts`) con las variables de `.env.local`.
+- Sin `RESEND_API_KEY` no se envían emails propios; la invitación de Google Calendar llega igualmente.

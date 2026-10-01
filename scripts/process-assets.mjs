@@ -54,12 +54,20 @@ const faviconSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
 
 async function images() {
   // Versión reescalada (v3): hero-desktop.png 4046×2258 y hero-mobile.png 2258×4046. Se acepta también .jpeg.
-  const heroD = firstOf('hero-desktop.png', 'hero-desktop.jpeg');
+  const heroD = firstOf('hero-static.png', 'hero-desktop.png', 'hero-desktop.jpeg');
   const heroM = firstOf('hero-mobile.png', 'hero-mobile.jpeg');
-  console.log('Hero escritorio 16:9');
-  if (heroD) await variants(heroD, 'hero-desktop', [1280, 1920, 2752]);
-  console.log('Hero móvil 9:16');
-  if (heroM) await variants(heroM, 'hero-mobile', [720, 1080, 1536]);
+  // El hero y VOLT usan ya las órbitas de frames (public/media/hero-orbit y volt-orbit), que este script NO procesa
+  // (no se recomprimen ni se renombran). hero-desktop solo se usa aquí como origen del og:image.
+  void heroM;
+
+  // Hero y VOLT con imagen estática a resolución completa (se descarta la órbita de frames: perdía nitidez en móvil).
+  // Hasta 4046 px: en móvil la imagen se recorta en vertical y a densidad 3x necesita ese ancho para verse nítida.
+  for (const [src, base] of [['hero-static.png', 'hero-static'], ['volt-static.png', 'volt-static']]) {
+    const file = firstOf(src);
+    console.log(`Imagen estática ${base}`);
+    if (file) await variants(file, base, [1280, 1920, 2752, 4046]);
+    else console.warn(`  falta assets-src/${src}`);
+  }
 
   console.log('og:image 1200×630');
   if (heroD) {
@@ -104,23 +112,16 @@ async function images() {
 
   console.log('Esfera del reloj (cierre)');
   const dial = ['clock-dial.jpeg', 'clock-dial.jpg'].map((f) => `${SRC}/${f}`).find(existsSync);
-  if (dial) await variants(dial, 'clock-dial', [1280, 1920, 2752]);
+  if (dial) {
+    await variants(dial, 'clock-dial', [1280, 1920, 2752]);
+    // Recorte 9:16 para móvil: altura completa, 864 px de ancho centrados en el pin (48,5 % del ancho).
+    const { width: dw, height: dh } = await sharp(dial).metadata();
+    const cw = Math.round((dh * 9) / 16);
+    const left = Math.min(Math.max(Math.round(dw * 0.485 - cw / 2), 0), dw - cw);
+    await variants(dial, 'clock-mobile', [540, 864], (s) => s.extract({ left, top: 0, width: cw, height: dh }));
+  }
   else console.warn('  falta assets-src/clock-dial.jpeg: el cierre muestra una esfera provisional en SVG');
 
-  console.log('Cámara VOLT (PNG con transparencia)');
-  const camDir = `${SRC}/volt-camera`;
-  if (has(`${camDir}/manifest.json`)) {
-    mkdirSync(`${OUT}/volt-camera`, { recursive: true });
-    const manifest = JSON.parse(readFileSync(`${camDir}/manifest.json`, 'utf8'));
-    for (const p of manifest.pieces) {
-      const base = p.file.replace(/\.png$/, '');
-      // Se sirve al 60 % del tamaño original: el lienzo nunca se muestra a más de ~1650 px de ancho y va al 22 % de opacidad.
-      const w = Math.round(p.px.w * 0.6);
-      await sharp(`${camDir}/${p.file}`).resize({ width: w }).webp({ quality: 80, alphaQuality: 90 }).toFile(`${OUT}/volt-camera/${base}.webp`);
-      await sharp(`${camDir}/${p.file}`).resize({ width: w }).png({ compressionLevel: 9, palette: true }).toFile(`${OUT}/volt-camera/${base}.png`);
-      console.log(`  ${base}  webp ${kb(`${OUT}/volt-camera/${base}.webp`)}`);
-    }
-  }
 }
 
 async function thumbs() {

@@ -1,5 +1,4 @@
 import { footer, site } from '../content';
-import { openConsentSettings } from '../consent';
 import { Wordmark } from './Wordmark';
 
 export function Footer() {
@@ -30,11 +29,6 @@ export function Footer() {
               <a href={l.href}>{l.label}</a>
             </li>
           ))}
-          <li>
-            <button type="button" className="linklike" onClick={openConsentSettings}>
-              Configurar cookies
-            </button>
-          </li>
         </ul>
         <p className="footer__copy">{footer.copyright}</p>
       </div>

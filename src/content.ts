@@ -6,10 +6,6 @@ export const site = {
   instagram: 'arnaumrl.ai',
   instagramUrl: 'https://www.instagram.com/arnaumrl.ai/',
   email: import.meta.env.VITE_CONTACT_EMAIL ?? '',
-  booking: {
-    // Cal.com, embebido (brief §12). Ruta del evento, p. ej. "usuario/15min".
-    path: import.meta.env.VITE_BOOKING_PATH ?? '',
-  },
 };
 
 export const nav = [
@@ -32,43 +28,78 @@ export const marquee = {
   thumbsBottom: ['ugc2', 'cine-3', 'proteina', 'cine-2'],
 };
 
+// Parche 3: 24 piezas en cinco bloques a scroll continuo, con barra de accesos rápidos.
+// Las líneas de argumento van debajo de cada bloque: primero se ve el trabajo, después se lee por qué sirve.
 export const portfolio = {
   intro: {
-    heading: 'Una marca entera, hecha desde cero.',
-    chain: ['Producto', 'Packaging', 'Spot', 'UGC', 'Estáticos'],
-    body: 'Si puedo montar una marca entera, puedo montar la tuya.',
+    heading: 'Nada de esto se ha rodado.',
+    body: 'Todo es trabajo propio: marcas, productos y campañas creados desde cero para enseñar hasta dónde llega el proceso.',
   },
-  cinematic: {
-    title: 'Cinematográfico',
-    video: { id: 'cine', meta: '9:16 · Cosmética · 10 s', tech: 'Personaje consistente en exterior con luz natural de atardecer y producto en mano.' },
-    stills: [
-      { id: 'cine-still-01-detalle', label: 'Detalle' },
-      { id: 'cine-still-02-general', label: 'General' },
-      { id: 'cine-still-03-producto', label: 'Producto' },
+  cine: {
+    nav: 'Cinematográficos',
+    title: 'Cinematográficos',
+    videos: [
+      { id: 'cine-01', meta: '9:16 · Moda · 15 s', tech: 'Exterior urbano con cámara en movimiento, personaje consistente en todos los planos.', alt: 'Editorial de moda en París' },
+      { id: 'cine-02', meta: '9:16 · Cosmética · 10 s', tech: 'Personaje consistente en exterior con luz natural de atardecer y producto en mano.', alt: 'Spot Y2K en una carretera costera' },
     ],
+    line: 'Calidad de campaña sin equipo, sin localización y sin permisos de rodaje.',
   },
   ugc: {
+    nav: 'UGC',
     title: 'UGC',
     videos: [
-      { id: 'ugc1', meta: '9:16 · Solar facial · 10 s' },
-      // Brief v3 · J: clip recortado a 11,4 s (decisión pendiente nº 2 cerrada).
+      { id: 'ugc-01', meta: '9:16 · Audio · 11 s', tech: 'Cámara frontal en interior con luz de ventana, producto en mano.', alt: 'UGC de auriculares en interior' },
+      { id: 'ugc-02', meta: '9:16 · Fitness · 14 s', tech: 'Dos personajes en la misma toma, conversación sostenida sin cortes de identidad.', alt: 'UGC en un gimnasio con dos personajes' },
+      { id: 'ugc-03', meta: '9:16 · Solar facial · 10 s', tech: 'Cámara frontal en movimiento, interior sin iluminación añadida.', alt: 'UGC de solar facial en un pasillo' },
+    ],
+    line: 'El formato que mejor convierte en redes, sin depender de la agenda de un creador.',
+    lineLink: 'El sonido y la voz, en mi feed.',
+  },
+  studio: {
+    nav: 'Estudio',
+    title: 'Imágenes de estudio',
+    items: [
+      { id: 'estudio-01-fragancia', meta: '3:4 · Fragancia', tech: 'Producto en contacto con el rostro, refracción del líquido sobre la piel y wordmark legible en el cristal.', alt: 'Modelo con gafas de sol sosteniendo un frasco de fragancia mrl. junto al rostro' },
+      { id: 'estudio-02-alimentacion', meta: '3:4 · Alimentación', tech: 'Cenital con packaging abierto, troquelado del producto y textura de migas como prueba de realismo.', alt: 'Cenital de una tableta de chocolate mrl. con el envoltorio abierto' },
+      { id: 'estudio-03-nutricion', meta: '3:4 · Nutrición deportiva', tech: 'Figura sobre fondo limpio, piel con sudor y packaging mate sin reflejos parásitos.', alt: 'Deportista sentado con una bolsa de proteína mrl. sobre fondo claro' },
+    ],
+    line: 'Packaging que no existe, fotografiado como si estuviera en tus manos.',
+  },
+  avatars: {
+    nav: 'Avatares',
+    title: 'Avatares IA hiperrealistas',
+    items: [
+      { id: 'avatar-01-chica', alt: 'Avatar: chica rubia en un coche con gafas de pasta' },
+      { id: 'avatar-02-chico', alt: 'Avatar: chico con un matcha en una cafetería' },
+      { id: 'avatar-03-chica', alt: 'Avatar: chica con un café en un coche' },
+      { id: 'avatar-04-chico', alt: 'Avatar: chico con sudadera y gorra en un coche' },
+    ],
+    line: 'Rostros con poros, asimetrías y textura de piel real, no las caras pulidas que delatan a la IA. Sin casting, sin cesión de imagen y sin fecha de caducidad.',
+  },
+  campaigns: {
+    nav: 'Campañas',
+    title: 'Campañas editoriales',
+    items: [
       {
-        id: 'ugc2',
-        meta: '9:16 · Audio · 11 s',
-        tech: 'Cámara frontal en interior con luz de ventana, producto en mano y voz sincronizada en castellano.',
+        id: 'tailoring',
+        name: 'Tailoring',
+        caption: 'Cuatro piezas, del plano general al detalle de producto.',
+        alts: ['Modelo apoyado en un coche', 'Contrapicado de cuerpo entero', 'Modelo caminando con una bolsa', 'Detalle de la bolsa'],
+      },
+      {
+        id: 'resort',
+        name: 'Resort',
+        caption: 'Cuatro piezas, un mismo paso de cebra, cuatro escalas distintas.',
+        alts: ['Contrapicado en un paso de cebra', 'Modelo andando de perfil', 'Cenital en el paso de cebra', 'Detalle de las botas'],
+      },
+      {
+        id: 'streetwear',
+        name: 'Streetwear',
+        caption: 'Cuatro piezas, dos personajes, una sola noche.',
+        alts: ['Pareja de pie de noche', 'Pareja sentada en unos escalones', 'Él solo de noche', 'Ella sola de noche'],
       },
     ],
-    avatarLabel: 'Avatares UGC',
-    avatarDesc: 'Avatares digitales con consistencia real que escalan el contenido de tu marca los 365 días del año',
-    reach: 'Los avatares se reutilizan en cualquier formato: UGC, spot cinematográfico o imagen de producto.',
-  },
-  products: {
-    title: 'Imagen de producto',
-    items: [
-      { id: 'fragancia', meta: '3:4 · Fragancia', tech: 'Producto en contacto con el rostro, refracción del líquido sobre la piel y wordmark legible en el cristal.' },
-      { id: 'chocolate', meta: '3:4 · Alimentación', tech: 'Cenital con packaging abierto, troquelado del producto y textura de migas como prueba de realismo.' },
-      { id: 'proteina', meta: '3:4 · Nutrición deportiva', tech: 'Figura sobre fondo limpio, piel con sudor y packaging mate sin reflejos parásitos.' },
-    ],
+    line: 'Una campaña editorial completa, con el mismo rostro y la misma luz en todas las piezas.',
   },
 };
 

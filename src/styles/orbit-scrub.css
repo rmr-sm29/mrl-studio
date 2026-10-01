@@ -1,0 +1,215 @@
+/* ==================================================================
+   Capas de fondo compartidas por el hero y por la sección VOLT
+   (imagen estática a resolución completa; la órbita de frames se descartó por falta de nitidez)
+   ================================================================== */
+
+.orbit {
+  position: sticky;
+  top: 0;
+  height: 100svh;
+  overflow-x: clip;
+  background: #0C0D0C;
+}
+
+/* La imagen y el velo miden lvh, no svh: en móvil, al bajar, la barra del navegador se oculta y el viewport crece;
+   con svh quedaba una franja negra abajo. Desbordan el .orbit por abajo y el driver (overflow: clip) los recorta. */
+.orbit__media {
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 100vh;
+  height: 100lvh;
+}
+
+.orbit__media picture { position: absolute; inset: 0; }
+
+/* object-fit: cover, mismo encuadre en escritorio y en móvil (en vertical se recorta a lo ancho, centrado) */
+.orbit__image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.orbit__content {
+  position: relative;
+  z-index: 4;
+  height: 100%;
+}
+
+/* velo de contraste — z-index 3, entre imagen y contenido */
+.orbit__scrim {
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 100vh;
+  height: 100lvh;
+  z-index: 3;
+  pointer-events: none;
+}
+
+/* ------------------------------------------------------------------
+   Hero — texto a la izquierda, sujeto a la derecha
+   ------------------------------------------------------------------ */
+
+.hero-orbit .orbit__scrim {
+  background: linear-gradient(
+    100deg,
+    rgba(12, 13, 12, 0.58) 0%,
+    rgba(12, 13, 12, 0.36) 36%,
+    rgba(12, 13, 12, 0.06) 62%,
+    rgba(12, 13, 12, 0) 100%
+  );
+}
+
+.hero-orbit-driver {
+  position: relative;
+  overflow: clip;
+  /* Medido: los tres mensajes del hero no se apilan, se relevan en la misma pantalla. El recorrido lo fija la secuencia
+     de texto ya validada (100svh de anclaje + 2,4 pantallas de scroll; umbrales al 12 % y al 70 %), no la altura de los
+     bloques. Igual en escritorio y en móvil. */
+  height: 340svh;
+}
+
+/* ------------------------------------------------------------------
+   VOLT — el sujeto viaja por el encuadre, velo más neutro
+   ------------------------------------------------------------------ */
+
+.volt-orbit .orbit__scrim {
+  background:
+    linear-gradient(
+      180deg,
+      rgba(12, 13, 12, 0.28) 0%,
+      rgba(12, 13, 12, 0.1) 30%,
+      rgba(12, 13, 12, 0.1) 62%,
+      rgba(12, 13, 12, 0.5) 100%
+    ),
+    linear-gradient(
+      95deg,
+      rgba(12, 13, 12, 0.42) 0%,
+      rgba(12, 13, 12, 0.04) 50%,
+      rgba(12, 13, 12, 0.2) 100%
+    );
+}
+
+.volt-orbit-driver {
+  position: relative;
+  overflow: clip;
+  /* Anclado (escritorio y tablet horizontal): 100svh + 4 pantallas, una por bloque; los SCROLL_STOPS y los cambios de
+     bloque coinciden (0,24 · 0,43 · 0,62 · 0,81). En móvil los bloques se apilan y el driver toma la altura real del
+     contenido (ver .volt-orbit-driver.is-stacked en styles.css). */
+  height: 500svh;
+}
+
+/* ------------------------------------------------------------------
+   Móvil
+   ------------------------------------------------------------------ */
+
+@media (max-width: 768px) {
+  .hero-orbit .orbit__scrim {
+    background: linear-gradient(
+      180deg,
+      rgba(12, 13, 12, 0.08) 0%,
+      rgba(12, 13, 12, 0.2) 45%,
+      rgba(12, 13, 12, 0.8) 100%
+    );
+  }
+
+  .volt-orbit .orbit__scrim {
+    background: linear-gradient(
+      180deg,
+      rgba(12, 13, 12, 0.34) 0%,
+      rgba(12, 13, 12, 0.3) 35%,
+      rgba(12, 13, 12, 0.66) 100%
+    );
+  }
+}
+
+/* ------------------------------------------------------------------
+   Reduced motion — sin sticky, sin secuencia, poster fijo
+   ------------------------------------------------------------------ */
+
+@media (prefers-reduced-motion: reduce) {
+  .orbit        { position: relative; }
+  .hero-orbit-driver,
+  .volt-orbit-driver { height: auto; }
+}
+
+/* ==================================================================
+   Portfolio — fondo anclado al viewport, el contenido pasa por encima
+   ================================================================== */
+
+.portfolio-bg {
+  position: relative;
+  isolation: isolate;
+  background: #0C0D0C;
+  /* El marco del fondo mide 100svh y cuelga del backdrop de altura 0: al final de la sección asomaba una pantalla más
+     sobre "El problema". overflow: clip lo recorta al borde de la sección sin romper el sticky. */
+  overflow: clip;
+}
+
+/* El contenedor del fondo es sticky y ocupa una pantalla completa.
+   Al tener altura 0 y desbordar hacia abajo, no empuja al contenido:
+   se queda clavado mientras la sección pasa por delante.
+
+   Se usa sticky y no `position: fixed` deliberadamente: fixed dentro de
+   una sección requiere clip-path o contain para no escaparse al resto de
+   la página, y `background-attachment: fixed` está roto en iOS. */
+.portfolio-bg__backdrop {
+  position: sticky;
+  top: 0;
+  z-index: 0;
+  height: 0;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.portfolio-bg__frame {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  height: 100lvh; /* lvh: sin franja negra cuando la barra del navegador móvil se oculta */
+  overflow: hidden;
+}
+
+.portfolio-bg__image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 62%;   /* prioriza el sillón sobre el techo */
+  opacity: 0.95;                 /* más presencia: con 0,55 y el velo el plató casi desaparecía */
+  display: block;
+}
+
+/* velo de contraste, dentro del marco anclado */
+.portfolio-bg__frame::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(12, 13, 12, 0.62) 0%,
+    rgba(12, 13, 12, 0.34) 18%,
+    rgba(12, 13, 12, 0.28) 50%,
+    rgba(12, 13, 12, 0.34) 82%,
+    rgba(12, 13, 12, 0.62) 100%
+  );
+}
+
+/* el contenido pasa por delante del fondo anclado */
+.portfolio-bg > *:not(.portfolio-bg__backdrop) {
+  position: relative;
+  z-index: 1;
+}
+
+@media (max-width: 768px) {
+  .portfolio-bg__image { opacity: 0.85; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* sin anclaje: el fondo viaja con la sección */
+  .portfolio-bg__backdrop { position: absolute; inset: 0; height: 100%; }
+  .portfolio-bg__frame    { height: 100%; }
+}
