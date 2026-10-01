@@ -128,24 +128,35 @@
 .slots__hint { margin-top: 16px; color: var(--muted); font-size: 0.85rem; }
 
 /* ---------- formulario ---------- */
+/* "Tu llamada" a la izquierda y "Cambiar hora" a la derecha, en la misma línea */
 .agenda__head {
   display: grid;
-  gap: 14px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 4px 16px;
   padding-bottom: 22px;
   margin-bottom: 24px;
   border-bottom: 1px solid var(--line);
 }
 .agenda__back {
-  justify-self: start;
+  justify-self: end;
+  margin-top: -9px; /* alinea el texto del botón (min-height 36px) con la etiqueta "Tu llamada" */
   display: inline-flex;
   gap: 8px;
   align-items: center;
   min-height: 36px;
+  padding: 0 14px;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  background: transparent;
   color: var(--bone-2);
-  font-size: 0.9rem;
+  font: inherit;
+  font-size: 0.88rem;
+  white-space: nowrap;
   cursor: pointer;
+  transition: border-color 0.2s, color 0.2s;
 }
-.agenda__back:hover { color: var(--bone); }
+.agenda__back:hover { color: var(--bone); border-color: var(--bone); }
 .agenda__when { display: grid; gap: 4px; outline: none; }
 .agenda__label { font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); font-weight: 400; }
 .agenda__date { font-size: clamp(1.25rem, 2.4vw, 1.6rem); font-weight: 600; letter-spacing: -0.02em; }

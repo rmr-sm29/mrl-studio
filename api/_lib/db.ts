@@ -20,6 +20,7 @@ export type BookingRow = {
   name: string;
   email: string;
   company: string;
+  phone: string | null;
   website: string | null;
   goal: string | null;
   timezone: string | null;

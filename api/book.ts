@@ -8,9 +8,11 @@ import { fail, ipHash, json, manageUrl, sameOrigin } from './_lib/http.js';
 import { formatLong } from './_lib/time.js';
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+/** Teléfono flexible: prefijo opcional, dígitos, espacios, guiones, puntos y paréntesis; de 6 a 15 dígitos. */
+const PHONE = /^\+?[\d\s().-]{6,24}$/;
 const MAX_PER_IP_24H = 3;
 
-type Body = Partial<Record<'startsAt' | 'name' | 'email' | 'company' | 'website' | 'goal' | 'timezone' | 'hp', string>> & {
+type Body = Partial<Record<'startsAt' | 'name' | 'email' | 'phone' | 'company' | 'website' | 'goal' | 'timezone' | 'hp', string>> & {
   consent?: boolean;
   elapsed?: number;
 };
@@ -33,8 +35,9 @@ export async function POST(request: Request) {
   const name = clean(body.name, 100);
   const email = clean(body.email, 254).toLowerCase();
   const company = clean(body.company, 120);
+  const phone = clean(body.phone, 30) || null;
   const website = clean(body.website, 200) || null;
-  const goal = typeof body.goal === 'string' ? body.goal.trim().slice(0, 1000) || null : null;
+  const goal = typeof body.goal === 'string' ? body.goal.trim().slice(0, 1000) : '';
   const timezone = clean(body.timezone, 64) || null;
   const start = new Date(String(body.startsAt));
 
@@ -42,6 +45,9 @@ export async function POST(request: Request) {
   if (name.length < 2) errors.name = 'Escribe tu nombre.';
   if (!EMAIL.test(email)) errors.email = 'Revisa el email.';
   if (company.length < 2) errors.company = 'Escribe el nombre de tu marca.';
+  if (phone && (!PHONE.test(phone) || phone.replace(/\D/g, '').length < 6 || phone.replace(/\D/g, '').length > 15))
+    errors.phone = 'Revisa el teléfono.';
+  if (goal.length < 3) errors.goal = 'Cuéntame en una frase qué quieres conseguir.';
   if (body.consent !== true) errors.consent = 'Necesitamos tu aceptación para gestionar la reserva.';
   if (Number.isNaN(start.getTime())) errors.startsAt = 'Elige un hueco.';
   if (Object.keys(errors).length) return fail(422, 'Revisa los campos marcados.', { fields: errors });
@@ -70,8 +76,8 @@ export async function POST(request: Request) {
 
   let id: string;
   try {
-    const rows = (await db`insert into bookings (starts_at, ends_at, name, email, company, website, goal, timezone, consent_at, ip_hash)
-      values (${start.toISOString()}, ${end.toISOString()}, ${name}, ${email}, ${company}, ${website}, ${goal}, ${timezone}, now(), ${ip})
+    const rows = (await db`insert into bookings (starts_at, ends_at, name, email, phone, company, website, goal, timezone, consent_at, ip_hash)
+      values (${start.toISOString()}, ${end.toISOString()}, ${name}, ${email}, ${phone}, ${company}, ${website}, ${goal}, ${timezone}, now(), ${ip})
       returning id`) as { id: string }[];
     id = rows[0].id;
   } catch (e) {
@@ -93,8 +99,9 @@ export async function POST(request: Request) {
         `Videollamada de ${RULES.callMinutes} min con mrl. studio.`,
         '',
         `Marca: ${company}`,
+        phone ? `Teléfono: ${phone}` : '',
         website ? `Web / Instagram: ${website}` : '',
-        goal ? `Objetivo: ${goal}` : '',
+        `Objetivo: ${goal}`,
         '',
         `Cambiar o cancelar: ${manage}`,
       ]
@@ -117,7 +124,7 @@ export async function POST(request: Request) {
     return fail(500, 'No hemos podido guardar la reserva. Inténtalo de nuevo.');
   }
 
-  const mail = { name, email, company, website, goal, start, meetUrl: event.meetUrl, manageUrl: manage };
+  const mail = { name, email, phone, company, website, goal, start, meetUrl: event.meetUrl, manageUrl: manage };
   await Promise.all([sendConfirmation(mail), notifyAdmin('nueva', mail)]);
 
   return json(

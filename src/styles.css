@@ -838,6 +838,11 @@ html[data-hero='image'] .header:not(.is-solid) .header__nav a { opacity: 1; }
   isolation: isolate;
 }
 .closing :focus-visible { outline-color: var(--graphite); }
+/* El bloque sube: menos aire arriba y más abajo, para que el formulario (el estado más alto) quede centrado
+   sobre la esfera del reloj, que se centra en la sección. */
+.closing.section { padding-block: calc(var(--header-h) + clamp(24px, 3.5vw, 48px)) clamp(120px, 15vw, 220px); }
+.closing .closing__sub { margin-top: 16px; }
+.closing .booking { margin-top: clamp(24px, 3vw, 36px); }
 .closing__inner { position: relative; z-index: 1; display: grid; justify-items: center; text-align: center; }
 .closing__title { font-size: clamp(2.3rem, 6vw, 5.2rem); line-height: 1; font-weight: 600; letter-spacing: -0.045em; text-wrap: balance; }
 .closing__sub { margin-top: 22px; color: var(--muted-on-light); font-size: clamp(1.02rem, 1.4vw, 1.2rem); max-width: 52ch; }

@@ -13,6 +13,7 @@ const mailOf = (b: BookingRow) => ({
   name: b.name,
   email: b.email,
   company: b.company,
+  phone: b.phone,
   website: b.website,
   goal: b.goal,
   start: new Date(b.starts_at),

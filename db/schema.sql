@@ -26,6 +26,9 @@ create table if not exists bookings (
   cancelled_at     timestamptz
 );
 
+-- v2: teléfono opcional en el formulario
+alter table bookings add column if not exists phone text;
+
 -- Un único hueco confirmado por hora de inicio: impide dobles reservas aunque lleguen a la vez.
 create unique index if not exists bookings_slot_confirmed on bookings (starts_at) where status = 'confirmed';
 create index if not exists bookings_email_idx on bookings (lower(email));

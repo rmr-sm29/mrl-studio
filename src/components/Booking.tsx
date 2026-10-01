@@ -5,9 +5,9 @@ import { SlotPicker } from '../booking/SlotPicker';
 import '../styles/booking.css';
 
 type Step = 'pick' | 'form' | 'done';
-type Fields = Record<'name' | 'email' | 'company' | 'website' | 'goal', string>;
+type Fields = Record<'name' | 'email' | 'phone' | 'company' | 'website' | 'goal', string>;
 
-const EMPTY: Fields = { name: '', email: '', company: '', website: '', goal: '' };
+const EMPTY: Fields = { name: '', email: '', phone: '', company: '', website: '', goal: '' };
 
 /** Agenda propia: huecos desde /api/slots (Google Calendar + reservas), formulario y confirmación. */
 export function Booking() {
@@ -121,21 +121,22 @@ export function Booking() {
       {step === 'form' && slot && (
         <form className="agenda__form" onSubmit={submit} noValidate>
           <div className="agenda__head">
-            <button type="button" className="agenda__back" onClick={() => setStep('pick')}>
-              <span aria-hidden="true">←</span> Cambiar hora
-            </button>
             <h3 className="agenda__when" ref={formTitle} tabIndex={-1}>
               <span className="agenda__label">Tu llamada</span>
               <span className="agenda__date">{when}</span>
             </h3>
+            <button type="button" className="agenda__back" onClick={() => setStep('pick')}>
+              <span aria-hidden="true">←</span> Cambiar hora
+            </button>
           </div>
 
           <div className="agenda__fields">
             <Field label="Nombre" name="name" value={fields.name} onChange={set('name')} error={errors.name} autoComplete="name" required />
             <Field label="Email" name="email" type="email" value={fields.email} onChange={set('email')} error={errors.email} autoComplete="email" required />
             <Field label="Marca o empresa" name="company" value={fields.company} onChange={set('company')} error={errors.company} autoComplete="organization" required />
-            <Field label="Web o Instagram" name="website" value={fields.website} onChange={set('website')} optional autoComplete="url" />
-            <Field label="¿Qué quieres conseguir?" name="goal" value={fields.goal} onChange={set('goal')} optional textarea wide />
+            <Field label="Teléfono" name="phone" type="tel" value={fields.phone} onChange={set('phone')} error={errors.phone} optional autoComplete="tel" />
+            <Field label="Web o Instagram" name="website" value={fields.website} onChange={set('website')} optional autoComplete="url" wide />
+            <Field label="¿Qué quieres conseguir?" name="goal" value={fields.goal} onChange={set('goal')} error={errors.goal} textarea wide required />
           </div>
 
           {/* Campo trampa: invisible para personas, los bots lo rellenan. */}

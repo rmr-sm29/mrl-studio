@@ -65,8 +65,8 @@ const pages: Record<'aviso-legal' | 'privacidad' | 'cookies', { title: string; b
         </p>
         <h2>Qué datos tratamos</h2>
         <p>
-          Los que facilitas al reservar una llamada: nombre, email, marca o empresa, web o perfil de Instagram (opcional),
-          lo que quieres conseguir (opcional), el día y la hora elegidos y tu zona horaria. Para prevenir abusos guardamos
+          Los que facilitas al reservar una llamada: nombre, email, teléfono (opcional), marca o empresa, web o perfil de
+          Instagram (opcional), lo que quieres conseguir, el día y la hora elegidos y tu zona horaria. Para prevenir abusos guardamos
           además un identificador irreversible derivado de tu dirección IP, nunca la IP en sí.
         </p>
         <h2>Finalidad y base legal</h2>

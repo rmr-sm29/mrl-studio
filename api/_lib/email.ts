@@ -78,6 +78,7 @@ export type MailBooking = {
   name: string;
   email: string;
   company: string;
+  phone?: string | null;
   website?: string | null;
   goal?: string | null;
   start: Date;
@@ -152,6 +153,7 @@ export async function notifyAdmin(kind: 'nueva' | 'cambiada' | 'cancelada', b: M
     ['Cuándo', when(b)],
     ['Nombre', b.name],
     ['Email', b.email],
+    ['Teléfono', b.phone],
     ['Marca', b.company],
     ['Web / Instagram', b.website],
     ['Objetivo', b.goal],
