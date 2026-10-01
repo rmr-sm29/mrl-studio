@@ -3,6 +3,16 @@ import { portfolioVideo } from '../media';
 import { useReducedMotion } from '../hooks';
 import { Ficha } from './Ficha';
 
+/**
+ * Safari (iPhone, iPad y Mac) declara poder reproducir WebM VP9 pero a menudo no lo decodifica: el vídeo se queda en
+ * el póster sin error de autoplay. En WebKit de Apple el MP4 (H.264) va primero; en el resto, WebM primero (parche 3).
+ */
+const APPLE_WEBKIT =
+  typeof navigator !== 'undefined' &&
+  (/iP(hone|ad|od)/.test(navigator.userAgent) ||
+    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1) ||
+    (/Safari\//.test(navigator.userAgent) && !/Chrome|Chromium|CriOS|FxiOS|Edg|Android/.test(navigator.userAgent)));
+
 type Props = {
   id: string;
   meta: string;
@@ -74,11 +84,26 @@ export function VideoPiece({ id, meta, tech, alt, active }: Props) {
           poster={src.poster}
           onPlay={() => setPlaying(true)}
           onPause={() => setPlaying(false)}
+          onError={(e) => {
+            // Si la fuente elegida no se puede decodificar, se pasa al MP4 y se reintenta.
+            const el = e.currentTarget;
+            if (!el.currentSrc.endsWith('.mp4')) {
+              el.src = src.mp4;
+              el.load();
+              if (active && !manual) el.play().catch(() => {});
+            }
+          }}
           aria-label={alt}
           tabIndex={-1}
         >
-          <source src={src.webm} type='video/webm; codecs="vp9"' />
-          <source src={src.mp4} type="video/mp4" />
+          {APPLE_WEBKIT ? (
+            <source src={src.mp4} type="video/mp4" />
+          ) : (
+            <>
+              <source src={src.webm} type='video/webm; codecs="vp9"' />
+              <source src={src.mp4} type="video/mp4" />
+            </>
+          )}
         </video>
         {manual && (
           <button
